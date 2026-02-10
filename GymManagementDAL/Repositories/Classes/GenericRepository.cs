@@ -10,32 +10,32 @@ namespace GymManagementDAL.Repositories.Classes
 {
     public class GenericRepository<TEntity>(GymDbContext _dbContext) : IGenericRepository<TEntity> where TEntity : BaseEntity, new()
     {
-        public async Task<IEnumerable<TEntity>> GetAll()
+        public IEnumerable<TEntity> GetAll(Func<TEntity,bool>? condition = null)
         {
-            return await _dbContext.Set<TEntity>().ToListAsync();
+            if (condition is null)
+                return _dbContext.Set<TEntity>().AsNoTracking().ToList();
+            else
+                return _dbContext.Set<TEntity>().AsNoTracking().Where(condition).ToList();
         }
 
-        public async Task<TEntity?> GetById(int id)
+        public TEntity? GetById(int id)
         {
-            return await _dbContext.Set<TEntity>().FindAsync(id);
+            return _dbContext.Set<TEntity>().Find(id);
         }
 
-        public async Task<int> Add(TEntity entity)
+        public void Add(TEntity entity)
         {
-            await _dbContext.Set<TEntity>().AddAsync(entity);
-            return await _dbContext.SaveChangesAsync();
+            _dbContext.Set<TEntity>().Add(entity);
         }
 
-        public async Task<int> Update(TEntity entity)
+        public void Update(TEntity entity)
         {
             _dbContext.Set<TEntity>().Update(entity);
-            return await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<int> Delete(TEntity entity)
+        public void Delete(TEntity entity)
         {
             _dbContext.Set<TEntity>().Remove(entity);
-            return await _dbContext.SaveChangesAsync();
         }
     }
 }
