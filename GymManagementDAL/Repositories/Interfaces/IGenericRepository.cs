@@ -7,10 +7,10 @@ namespace GymManagementDAL.Repositories.Interfaces
 {
     public interface IGenericRepository<TEntity> where TEntity : BaseEntity, new()
     {
-        Task<IEnumerable<TEntity>> GetAll();
-        Task<TEntity?> GetById(int id);
-        Task<int> Add(TEntity entity);
-        Task<int> Update(TEntity entity);
-        Task<int> Delete(TEntity entity);
+        IEnumerable<TEntity> GetAll(Func<TEntity,bool>? condition = null);
+        TEntity? GetById(int id);
+        void Add(TEntity entity);
+        void Update(TEntity entity);
+        void Delete(TEntity entity);
     }
 }
