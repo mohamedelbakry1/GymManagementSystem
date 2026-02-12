@@ -66,8 +66,9 @@ namespace GymManagementBLL.Services.Classes
                 _unitOfWork.GetRepository<Trainer>().Add(Trainer);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Create Trainer Failed {ex}");
                 return false;
             }
         }
@@ -106,8 +107,9 @@ namespace GymManagementBLL.Services.Classes
                 TrainerRepo.Update(Trainer);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Update Trainer Failed {ex}");
                 return false;
             }
         }
@@ -124,8 +126,9 @@ namespace GymManagementBLL.Services.Classes
                 _unitOfWork.GetRepository<Trainer>().Delete(Trainer);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Remove Trainer Failed {ex}");
                 return false;
             }
         }
