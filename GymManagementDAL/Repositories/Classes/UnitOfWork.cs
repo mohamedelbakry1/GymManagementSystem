@@ -8,9 +8,12 @@ using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
 {
-    public class UnitOfWork(GymDbContext _dbContext) : IUnitOfWork
+    public class UnitOfWork(GymDbContext _dbContext, ISessionRepository sessionRepository) : IUnitOfWork
     {
         private readonly ConcurrentDictionary<Type, object> _repositories = new ConcurrentDictionary<Type, object>();
+
+        public ISessionRepository SessionRepository { get; } = sessionRepository;
+
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()
         {
             return (IGenericRepository<TEntity>) _repositories.GetOrAdd(typeof(TEntity),new GenericRepository<TEntity>(_dbContext));

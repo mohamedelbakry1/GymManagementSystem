@@ -68,8 +68,9 @@ namespace GymManagementBLL.Services.Classes
                 PlanRepo.Update(Plan);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Update Plan Failed {ex}");
                 return false;
             }
         }
@@ -86,8 +87,9 @@ namespace GymManagementBLL.Services.Classes
                 PlanRepo.Update(Plan);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Change Plan Status Failed {ex}");
                 return false; 
             }
         }

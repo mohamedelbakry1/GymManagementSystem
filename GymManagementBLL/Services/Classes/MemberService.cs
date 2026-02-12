@@ -104,6 +104,7 @@ namespace GymManagementBLL.Services.Classes
             }
             catch(Exception ex)
             {
+                Console.WriteLine($"Create Member Failed {ex}");
                 return false;
             }
         }
@@ -145,8 +146,9 @@ namespace GymManagementBLL.Services.Classes
                 MemberRepo.Update(Member);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Update Member Failed {ex}");
                 return false;
             }
         }
@@ -176,8 +178,9 @@ namespace GymManagementBLL.Services.Classes
                 MemberRepo.Delete(Member);
                 return _unitOfWork.SaveChanges() > 0;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine($"Remove Member Failed {ex}");
                 return false;
             }
         }
