@@ -1,14 +1,16 @@
 using System.Diagnostics;
+using GymManagementBLL.Services.Interfaces;
 using GymManagementPL.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GymManagementPL.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController(IAnalyticsService _analyticsService) : Controller
     {
         public IActionResult Index()
         {
-            return View();
+            var Data = _analyticsService.GetAnalyticsData();
+            return View(Data);
         }
     }
 }
