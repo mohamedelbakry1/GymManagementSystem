@@ -1,4 +1,5 @@
-﻿using GymManagementBLL.Services.Interfaces;
+﻿using AutoMapper;
+using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.TrianerViewModels;
 using GymManagementDAL.Entities;
 using GymManagementDAL.Repositories.Interfaces;
@@ -9,21 +10,14 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class TrainerService(IUnitOfWork _unitOfWork) : ITrainerService
+    public class TrainerService(IUnitOfWork _unitOfWork, IMapper _mapper) : ITrainerService
     {
         public IEnumerable<TrainerViewModel> GetAllTrainers()
         {
             var Trainers = _unitOfWork.GetRepository<Trainer>().GetAll();
             if (Trainers is null || !Trainers.Any()) return [];
 
-            return Trainers.Select(T => new TrainerViewModel()
-            {
-                Id = T.Id,
-                Name = T.Name,
-                Email = T.Email,
-                Phone = T.Phone,
-                Specialities = T.Specialties.ToString(),
-            });
+            return _mapper.Map<IEnumerable<TrainerViewModel>>(Trainers);
         }
 
         public TrainerViewModel? GetTrainerDetails(int TrainerId)
@@ -31,15 +25,7 @@ namespace GymManagementBLL.Services.Classes
             var Trainer = _unitOfWork.GetRepository<Trainer>().GetById(TrainerId);
             if (Trainer is null) return null!;
 
-            return new TrainerViewModel()
-            {
-                Name = Trainer.Name,
-                Specialities = Trainer.Specialties.ToString(),
-                Email = Trainer.Email,
-                Phone = Trainer.Phone,
-                DateOfBirth = Trainer.DateOfBirth.ToShortDateString(),
-                Address = $"{Trainer.Address.BuildingNumber} - {Trainer.Address.Street} - {Trainer.Address.City}"
-            };
+            return _mapper.Map<TrainerViewModel>(Trainer);
         }
 
         public bool CreateTrainer(CreateTrainerViewModel createTrainer)
@@ -48,21 +34,8 @@ namespace GymManagementBLL.Services.Classes
             {
                 if (IsEmailExists(createTrainer.Email) || IsPhoneExists(createTrainer.Phone)) return false;
 
-                var Trainer = new Trainer()
-                {
-                    Name = createTrainer.Name,
-                    Email = createTrainer.Email,
-                    Phone = createTrainer.Phone,
-                    DateOfBirth = createTrainer.DateOfBirth,
-                    Gender = createTrainer.Gender,
-                    Address = new Address
-                    {
-                        BuildingNumber = createTrainer.BuildingNumber,
-                        Street = createTrainer.Street,
-                        City = createTrainer.City,
-                    },
-                    Specialties = createTrainer.Specialties,
-                };
+                var Trainer = _mapper.Map<Trainer>(createTrainer);
+
                 _unitOfWork.GetRepository<Trainer>().Add(Trainer);
                 return _unitOfWork.SaveChanges() > 0;
             }
@@ -78,16 +51,7 @@ namespace GymManagementBLL.Services.Classes
             var Trainer = _unitOfWork.GetRepository<Trainer>().GetById(TrainerId);
             if (Trainer is null) return null;
 
-            return new UpdateTrainerViewModel()
-            {
-                Name = Trainer.Name,
-                Email = Trainer.Email,
-                Phone = Trainer.Phone,
-                BuildingNumber = Trainer.Address.BuildingNumber,
-                Street = Trainer.Address.Street,
-                City = Trainer.Address.City,
-                Specialties = Trainer.Specialties,
-            };
+            return _mapper.Map<UpdateTrainerViewModel>(Trainer);
         }
 
         public bool UpdateTrainer(int TrainerId, UpdateTrainerViewModel updateTrainer)
@@ -97,11 +61,8 @@ namespace GymManagementBLL.Services.Classes
             if (Trainer is null || IsEmailExists(updateTrainer.Email) || IsPhoneExists(updateTrainer.Phone)) return false;
             try
             {
-                Trainer.Email = updateTrainer.Email;
-                Trainer.Phone = updateTrainer.Phone;
-                Trainer.Address.BuildingNumber = updateTrainer.BuildingNumber;
-                Trainer.Address.Street = updateTrainer.Street;
-                Trainer.Address.City = updateTrainer.City;
+                _mapper.Map(updateTrainer, Trainer);
+
                 Trainer.UpdatedAt = DateTime.Now;
 
                 TrainerRepo.Update(Trainer);

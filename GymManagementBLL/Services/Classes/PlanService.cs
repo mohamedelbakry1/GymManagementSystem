@@ -1,4 +1,5 @@
-﻿using GymManagementBLL.Services.Interfaces;
+﻿using AutoMapper;
+using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.PlanViewModels;
 using GymManagementDAL.Entities;
 using GymManagementDAL.Repositories.Interfaces;
@@ -8,22 +9,14 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class PlanService(IUnitOfWork _unitOfWork) : IPlanService
+    public class PlanService(IUnitOfWork _unitOfWork, IMapper _mapper) : IPlanService
     {
         public IEnumerable<PlanViewModel> GetAllPlans()
         {
             var Plans = _unitOfWork.GetRepository<Plan>().GetAll();
             if (Plans is null || !Plans.Any()) return [];
 
-            return Plans.Select(P => new PlanViewModel()
-            {
-                Id = P.Id,
-                Name = P.Name,
-                Description = P.Description,
-                Price = P.Price,
-                DurationDays = P.DurationDays,
-                IsActive = P.IsActive,
-            });
+            return _mapper.Map<IEnumerable<PlanViewModel>>(Plans);
         }
 
         public PlanViewModel? GetPlanDetails(int PlanId)
@@ -31,14 +24,7 @@ namespace GymManagementBLL.Services.Classes
             var Plan = _unitOfWork.GetRepository<Plan>().GetById(PlanId);
             if (Plan is null) return null;
 
-            return new PlanViewModel()
-            {
-                Name = Plan.Name,
-                Description = Plan.Description,
-                Price = Plan.Price,
-                DurationDays = Plan.DurationDays,
-                IsActive = Plan.IsActive,
-            };
+            return _mapper.Map<PlanViewModel>(Plan);
         }
 
         public UpdatePlanViewModel? GetPlanToUpdate(int PlanId)
@@ -62,8 +48,8 @@ namespace GymManagementBLL.Services.Classes
             if (Plan is null || HasActiveMemberships(PlanId)) return false;
             try
             {
-                (Plan.Description, Plan.Price, Plan.DurationDays, Plan.UpdatedAt)
-               = (updatePlan.Description, updatePlan.Price, updatePlan.DurationDays, DateTime.Now);
+                _mapper.Map(updatePlan, Plan);
+                Plan.UpdatedAt = DateTime.Now;
 
                 PlanRepo.Update(Plan);
                 return _unitOfWork.SaveChanges() > 0;

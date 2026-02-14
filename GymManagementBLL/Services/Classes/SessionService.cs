@@ -69,9 +69,9 @@ namespace GymManagementBLL.Services.Classes
                 var Session = _unitOfWork.SessionRepository.GetById(SessionId);
                 if (IsSessionAvailableToUpdate(Session!)) return false;
                 if (IsTrainerExists(updateSession.TrainerId)) return false;
-                if (IsDateTimeValid(updateSession.StartDate, updateSession.EndDate)) ;
+                if (IsDateTimeValid(updateSession.StartDate, updateSession.EndDate)) return false;
 
-                _mapper.Map<Session>(updateSession);
+                _mapper.Map(updateSession, Session);
                 Session!.UpdatedAt = DateTime.Now;
                 _unitOfWork.SessionRepository.Update(Session);
 
