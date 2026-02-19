@@ -51,7 +51,7 @@ namespace GymManagementPL.Controllers
             if (result)
                 TempData["SuccessMessage"] = "Trainer Created Successfully";
             else
-                TempData["ErrorMessage"] = "Trainer Failed To Create";
+                TempData["ErrorMessage"] = "Trainer Failed To Create, Check Email and Phone";
 
             return RedirectToAction(nameof(Index));
         }
