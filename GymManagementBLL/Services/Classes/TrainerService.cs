@@ -57,8 +57,13 @@ namespace GymManagementBLL.Services.Classes
         public bool UpdateTrainer(int TrainerId, UpdateTrainerViewModel updateTrainer)
         {
             var TrainerRepo = _unitOfWork.GetRepository<Trainer>();
+
+            var emailExist = TrainerRepo.GetAll(X => X.Email == updateTrainer.Email && X.Id != TrainerId).Any();
+
+            var phoneExist = TrainerRepo.GetAll(X => X.Phone == updateTrainer.Phone && X.Id != TrainerId).Any();
+
             var Trainer = TrainerRepo.GetById(TrainerId);
-            if (Trainer is null || IsEmailExists(updateTrainer.Email) || IsPhoneExists(updateTrainer.Phone)) return false;
+            if (Trainer is null || emailExist || phoneExist) return false;
             try
             {
                 _mapper.Map(updateTrainer, Trainer);
