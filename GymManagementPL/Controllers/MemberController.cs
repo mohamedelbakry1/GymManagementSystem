@@ -120,7 +120,6 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewBag.MemberId = Id;
-            ViewBag.MemberName = Member.Name;
             return View();
         }
 
