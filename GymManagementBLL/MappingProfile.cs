@@ -24,13 +24,18 @@ namespace GymManagementBLL
         private void MapSession()
         {
             CreateMap<Session, SessionViewModel>()
-            .ForMember(dest => dest.CategoryName, options => options.MapFrom(src => src.SessionCategory))
-            .ForMember(dest => dest.TrainerName, options => options.MapFrom(src => src.SessionTrainer))
+            .ForMember(dest => dest.CategoryName, options => options.MapFrom(src => src.SessionCategory.CategoryName))
+            .ForMember(dest => dest.TrainerName, options => options.MapFrom(src => src.SessionTrainer.Name))
             .ForMember(dest => dest.AvailableSlots, options => options.Ignore());
 
             CreateMap<CreateSessionViewModel, Session>();
 
             CreateMap<Session, UpdateSessionViewModel>().ReverseMap();
+
+            CreateMap<Trainer, TrainerSelectViewModel>();
+
+            CreateMap<Category, CategorySelectViewModel>()
+                .ForMember(dest => dest.Name, options => options.MapFrom(src => src.CategoryName));
         }
 
         private void MapMember()

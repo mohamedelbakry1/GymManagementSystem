@@ -58,7 +58,7 @@ namespace GymManagementBLL.Services.Classes
         public UpdateSessionViewModel? GetSessionToUpdate(int SessionId)
         {
             var Session = _unitOfWork.SessionRepository.GetById(SessionId);
-            if (IsSessionAvailableToUpdate(Session!)) return null!;
+            if (!IsSessionAvailableToUpdate(Session!)) return null!;
             return _mapper.Map<UpdateSessionViewModel>(Session);
         }
 
@@ -67,9 +67,9 @@ namespace GymManagementBLL.Services.Classes
             try
             {
                 var Session = _unitOfWork.SessionRepository.GetById(SessionId);
-                if (IsSessionAvailableToUpdate(Session!)) return false;
-                if (IsTrainerExists(updateSession.TrainerId)) return false;
-                if (IsDateTimeValid(updateSession.StartDate, updateSession.EndDate)) return false;
+                if (!IsSessionAvailableToUpdate(Session!)) return false;
+                if (!IsTrainerExists(updateSession.TrainerId)) return false;
+                if (!IsDateTimeValid(updateSession.StartDate, updateSession.EndDate)) return false;
 
                 _mapper.Map(updateSession, Session);
                 Session!.UpdatedAt = DateTime.Now;
@@ -103,6 +103,18 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
+        public IEnumerable<TrainerSelectViewModel> GetTrainerForDropDown()
+        {
+            var Trainers = _unitOfWork.GetRepository<Trainer>().GetAll();
+            return _mapper.Map<IEnumerable<TrainerSelectViewModel>>(Trainers);
+        }
+
+        public IEnumerable<CategorySelectViewModel> GetCategoryForDropDown()
+        {
+            var Categories = _unitOfWork.GetRepository<Category>().GetAll();
+            return _mapper.Map<IEnumerable<CategorySelectViewModel>>(Categories);
+        }
+
         #region Helper Methods
         private bool IsTrainerExists(int TrainerId)
         {
@@ -114,7 +126,7 @@ namespace GymManagementBLL.Services.Classes
         }
         private bool IsDateTimeValid(DateTime StartDate, DateTime EndDate)
         {
-            return StartDate < EndDate;
+            return StartDate < EndDate && DateTime.Now < StartDate;
         }
         private bool IsSessionAvailableToUpdate(Session session)
         {
