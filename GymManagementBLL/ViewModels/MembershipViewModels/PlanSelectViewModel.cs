@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GymManagementBLL.ViewModels.SessionViewModels
+namespace GymManagementBLL.ViewModels.MembershipViewModels
 {
-    public class CategorySelectViewModel
+    public class PlanSelectViewModel
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;

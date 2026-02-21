@@ -8,11 +8,15 @@ using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
 {
-    public class UnitOfWork(GymDbContext _dbContext, ISessionRepository sessionRepository) : IUnitOfWork
+    public class UnitOfWork(GymDbContext _dbContext, 
+        ISessionRepository sessionRepository,
+        IMembershipRepository membershipRepository) : IUnitOfWork
     {
         private readonly ConcurrentDictionary<Type, object> _repositories = new ConcurrentDictionary<Type, object>();
 
         public ISessionRepository SessionRepository { get; } = sessionRepository;
+
+        public IMembershipRepository MembershipRepository { get; } = membershipRepository;
 
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()
         {

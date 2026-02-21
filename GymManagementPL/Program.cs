@@ -31,8 +31,9 @@ namespace GymManagementPL
             builder.Services.AddScoped<IPlanService, PlanService>();
             builder.Services.AddScoped<ISessionService, SessionService>();
             builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+            builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
+            builder.Services.AddScoped<IMembershipService, MembershipService>();
             builder.Services.AddAutoMapper(X => X.AddProfile(new MappingProfile()));
-
             var app = builder.Build();
 
             #region Data Seeding
