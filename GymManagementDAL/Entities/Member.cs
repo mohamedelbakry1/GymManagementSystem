@@ -6,7 +6,7 @@ namespace GymManagementDAL.Entities
 {
     public class Member : GymUser
     {
-        public string? Photo { get; set; }
+        public string Photo { get; set; } = null!;
 
         #region Member - HealthRecord
         public HealthRecord HealthRecord { get; set; } = null!;
