@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using GymManagementBLL.ViewModels.MembershipViewModels;
 using GymManagementBLL.ViewModels.MemberViewModels;
 using GymManagementBLL.ViewModels.PlanViewModels;
 using GymManagementBLL.ViewModels.SessionViewModels;
 using GymManagementBLL.ViewModels.TrianerViewModels;
 using GymManagementDAL.Entities;
 using GymManagementSystemBLL.ViewModels.SessionViewModels;
+using Microsoft.AspNetCore.Routing.Constraints;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -94,7 +96,7 @@ namespace GymManagementBLL
 
             CreateMap<UpdateTrainerViewModel, Trainer>()
                 .ForMember(dest => dest.Name, option => option.Ignore())
-                .AfterMap((src,dest) =>
+                .AfterMap((src, dest) =>
                 {
                     dest.Address.BuildingNumber = src.BuildingNumber;
                     dest.Address.Street = src.Street;
