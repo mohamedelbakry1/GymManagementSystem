@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GymManagementBLL.ViewModels.BookingViewModels;
 using GymManagementBLL.ViewModels.MembershipViewModels;
 using GymManagementBLL.ViewModels.MemberViewModels;
 using GymManagementBLL.ViewModels.PlanViewModels;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Routing.Constraints;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MemberSelectViewModel = GymManagementBLL.ViewModels.BookingViewModels.MemberSelectViewModel;
 
 namespace GymManagementBLL
 {
@@ -21,6 +23,8 @@ namespace GymManagementBLL
             MapMember();
             MapTrainer();
             MapPlan();
+            MapBooking();
+            MapMembership();
         }
 
         private void MapSession()
@@ -113,6 +117,34 @@ namespace GymManagementBLL
 
             CreateMap<UpdatePlanViewModel, Plan>()
                 .ForMember(dest => dest.Name, option => option.Ignore());
+        }
+
+        private void MapMembership()
+        {
+            CreateMap<Membership, MembershipViewModel>()
+                .ForMember(dest => dest.MemberName, option => option.MapFrom(src => src.Member.Name))
+                .ForMember(dest => dest.PlanName, option => option.MapFrom(src => src.Plan.Name))
+                .ForMember(dest => dest.StartDate, option => option.MapFrom(src => src.CreatedAt));
+
+            CreateMap<CreateMembershipViewModel, Membership>();
+
+            CreateMap<Member, MemberSelectViewModel>();
+
+            CreateMap<Plan, PlanSelectViewModel>();
+        }
+
+        private void MapBooking()
+        {
+            CreateMap<Booking, MemberBookingViewModel>()
+                .ForMember(dest => dest.MemberName, option => option.MapFrom(src => src.Member.Name))
+                .ForMember(dest => dest.StartDate, option => option.MapFrom(src => src.CreatedAt));
+
+            CreateMap<Booking, MemberAttendanceViewModel>()
+                .ForMember(dest => dest.MemberName, option => option.MapFrom(src => src.Member.Name));
+
+            CreateMap<Member, MemberSelectViewModel>();
+
+            CreateMap<CreateBookingViewModel, Booking>();
         }
     }
 }
