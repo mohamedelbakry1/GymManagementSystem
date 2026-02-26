@@ -33,6 +33,8 @@ namespace GymManagementPL
             builder.Services.AddScoped<IAttachmentService, AttachmentService>();
             builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
             builder.Services.AddScoped<IMembershipService, MembershipService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddAutoMapper(X => X.AddProfile(new MappingProfile()));
             var app = builder.Build();
 

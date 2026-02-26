@@ -10,13 +10,17 @@ namespace GymManagementDAL.Repositories.Classes
 {
     public class UnitOfWork(GymDbContext _dbContext, 
         ISessionRepository sessionRepository,
-        IMembershipRepository membershipRepository) : IUnitOfWork
+        IMembershipRepository membershipRepository,
+        IBookingRepository bookingRepository
+        ) : IUnitOfWork
     {
         private readonly ConcurrentDictionary<Type, object> _repositories = new ConcurrentDictionary<Type, object>();
 
         public ISessionRepository SessionRepository { get; } = sessionRepository;
 
         public IMembershipRepository MembershipRepository { get; } = membershipRepository;
+
+        public IBookingRepository BookingRepository { get; } = bookingRepository;
 
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()
         {

@@ -18,8 +18,11 @@ namespace GymManagementDAL.Repositories.Classes
                 return _dbContext.Set<TEntity>().AsNoTracking().Where(condition).ToList();
         }
 
-        public TEntity? GetById(int id)
+        public TEntity? GetById(int id, Func<TEntity, bool>? condition = null)
         {
+            if (condition is not null)
+            return _dbContext.Set<TEntity>().Where(condition).FirstOrDefault();
+
             return _dbContext.Set<TEntity>().Find(id);
         }
 

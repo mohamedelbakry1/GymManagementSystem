@@ -47,13 +47,7 @@ namespace GymManagementBLL.Services.Classes
             var MemberHealthRecord = _unitOfWork.GetRepository<HealthRecord>().GetById(MemberId);
             if (MemberHealthRecord is null) return null;
 
-            return new HealthRecordViewModel()
-            {
-                Height = MemberHealthRecord.Height,
-                Weight = MemberHealthRecord.Weight,
-                BloodType = MemberHealthRecord.BloodType,
-                Note = MemberHealthRecord.Note,
-            };
+            return _mapper.Map<HealthRecordViewModel>(MemberHealthRecord);
         }
 
         public bool CreateMember(CreateMemberViewModel createMember)

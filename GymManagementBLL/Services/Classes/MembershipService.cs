@@ -19,15 +19,8 @@ namespace GymManagementBLL.Services.Classes
         public IEnumerable<MembershipViewModel> GetAllMemberships()
         {
             var Memberships = _unitOfWork.MembershipRepository.GetAllMembershipsWithPlanAndMember();
-            return Memberships.Select(m => new MembershipViewModel
-            {
-                MemberId = m.MemberId,
-                PlanId = m.PlanId,
-                MemberName = m.Member.Name,
-                PlanName = m.Plan.Name,
-                StartDate = m.CreatedAt,
-                EndDate = m.EndDate,
-            });
+
+            return _mapper.Map<IEnumerable<MembershipViewModel>>(Memberships);
         }
 
         public bool CreateMembership(CreateMembershipViewModel createMembership)
@@ -40,12 +33,7 @@ namespace GymManagementBLL.Services.Classes
             try
             {
                 var Plan = _unitOfWork.GetRepository<Plan>().GetById(createMembership.PlanId);
-                var membership = new Membership()
-                {
-                    MemberId = createMembership.MemberId,
-                    PlanId = createMembership.PlanId,
-                    CreatedAt = DateTime.Now,
-                };
+                var membership = _mapper.Map<Membership>(createMembership);
 
                 membership.EndDate = membership.CreatedAt.AddDays(Plan!.DurationDays);
 
@@ -87,21 +75,14 @@ namespace GymManagementBLL.Services.Classes
         public IEnumerable<MemberSelectViewModel> GetMemberForDropDown()
         {
             var Members = _unitOfWork.GetRepository<Member>().GetAll();
-            return Members.Select(X => new MemberSelectViewModel()
-            {
-                Id = X.Id,
-                Name = X.Name
-            });
+
+            return _mapper.Map<IEnumerable<MemberSelectViewModel>>(Members);
         }
 
         public IEnumerable<PlanSelectViewModel> GetPlanForDropDown()
         {
             var Plans = _unitOfWork.GetRepository<Plan>().GetAll();
-            return Plans.Select(X => new PlanSelectViewModel()
-            {
-                Id = X.Id,
-                Name = X.Name
-            });
+            return _mapper.Map<IEnumerable<PlanSelectViewModel>>(Plans);
         }
 
         #region Helper Methods
@@ -113,7 +94,7 @@ namespace GymManagementBLL.Services.Classes
 
         private bool IsPlanExist(int PlanId)
         {
-            return _unitOfWork.GetRepository<Plan>().GetById(PlanId) is not null;
+            return _unitOfWork.GetRepository<Plan>().GetById(PlanId,X => X.IsActive == true) is not null;
         }
 
         private bool HasActiveMemberships(int MemberId)
