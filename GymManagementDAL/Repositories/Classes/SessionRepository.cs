@@ -4,6 +4,7 @@ using GymManagementDAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
@@ -17,27 +18,27 @@ namespace GymManagementDAL.Repositories.Classes
             this._dbContext = dbContext;
         }
 
-        public IEnumerable<Session> GetAllSessionsWithTrainerAndCategory(Func<Session,bool>? condition = null)
+        public async Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategoryAsync(Expression<Func<Session, bool>>? condition = null)
         {
             if(condition is not null)
-                return _dbContext.Sessions.Include(X => X.SessionTrainer)
+                return await _dbContext.Sessions.Include(X => X.SessionTrainer)
                    .Include(X => X.SessionCategory)
-                   .ToList().Where(condition);
+                   .Where(condition).ToListAsync();
             else
-            return _dbContext.Sessions.Include(X => X.SessionTrainer)
+            return await _dbContext.Sessions.Include(X => X.SessionTrainer)
                    .Include(X => X.SessionCategory)
-                   .ToList();
+                   .ToListAsync();
         }
-        public Session? GetSessionWithTrainerAndCategory(int SessionId)
+        public async Task<Session?> GetSessionWithTrainerAndCategoryAsync(int SessionId)
         {
-            return _dbContext.Sessions.Include(X => X.SessionTrainer)
+            return await _dbContext.Sessions.Include(X => X.SessionTrainer)
                                       .Include(X => X.SessionCategory)
-                                      .FirstOrDefault(X => X.Id == SessionId);
+                                      .FirstOrDefaultAsync(X => X.Id == SessionId);
         }
 
-        public int GetCountOfBookings(int SessionId)
+        public async Task<int> GetCountOfBookingsAsync(int SessionId)
         {
-            return _dbContext.Bookings.Count(X => X.SessionId == SessionId);
+            return await _dbContext.Bookings.CountAsync(X => X.SessionId == SessionId);
         }
     }
 }

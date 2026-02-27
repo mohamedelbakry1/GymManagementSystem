@@ -6,13 +6,13 @@ namespace GymManagementPL.Controllers
 {
     public class PlanController(IPlanService _planService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var Plans = _planService.GetAllPlans();
+            var Plans = await _planService.GetAllPlans();
             return View(Plans);
         }
 
-        public IActionResult Details(int Id)
+        public async Task<IActionResult> Details(int Id)
         {
             if(Id <= 0)
             {
@@ -20,7 +20,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Plan = _planService.GetPlanDetails(Id);
+            var Plan = await _planService.GetPlanDetails(Id);
 
             if(Plan is null)
             {
@@ -30,7 +30,7 @@ namespace GymManagementPL.Controllers
             return View(Plan);
         }
 
-        public IActionResult PlanEdit(int Id)
+        public async Task<IActionResult> PlanEdit(int Id)
         {
             if (Id <= 0)
             {
@@ -38,7 +38,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Plan = _planService.GetPlanToUpdate(Id);
+            var Plan = await _planService.GetPlanToUpdate(Id);
 
             if(Plan is null)
             {
@@ -49,7 +49,7 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult PlanEdit([FromRoute]int Id, UpdatePlanViewModel updatePlan)
+        public async Task<IActionResult> PlanEdit([FromRoute]int Id, UpdatePlanViewModel updatePlan)
         {
             if (!ModelState.IsValid)
             {
@@ -57,7 +57,7 @@ namespace GymManagementPL.Controllers
                 return View(updatePlan);
             }
 
-            var result = _planService.UpdatePlanDetails(Id, updatePlan);
+            var result = await _planService.UpdatePlanDetails(Id, updatePlan);
 
             if (result)
                 TempData["SuccessMessage"] = "Plan Updated Successfully";
@@ -68,9 +68,9 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult ToggleStatus([FromRoute] int Id)
+        public async Task<IActionResult> ToggleStatus([FromRoute] int Id)
         {
-            var result = _planService.ToggleStatus(Id);
+            var result = await _planService.ToggleStatus(Id);
 
             if (result)
                 TempData["SuccessMessage"] = "Plan Status Changed";

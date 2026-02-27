@@ -7,12 +7,12 @@ namespace GymManagementBLL.Services.Interfaces
 {
     public interface IMemberService
     {
-        IEnumerable<MemberViewModel> GetAllMembers();
-        bool CreateMember(CreateMemberViewModel createMember);
-        MemberViewModel? GetMemberDetails(int MemberId);
-        HealthRecordViewModel? GetMemberHealthRecordDetails(int MemberId);
-        UpdateMemberViewModel?  GetMemberToUpdate(int MemberId);
-        bool UpdateMemberDetails(int MemberId, UpdateMemberViewModel updateMember);
-        bool RemoveMember(int MemberId);
+        Task<IEnumerable<MemberViewModel>> GetAllMembers();
+        Task<bool> CreateMember(CreateMemberViewModel createMember);
+        Task<MemberViewModel?> GetMemberDetails(int MemberId);
+        Task<HealthRecordViewModel?> GetMemberHealthRecordDetails(int MemberId);
+        Task<UpdateMemberViewModel?>  GetMemberToUpdate(int MemberId);
+        Task<bool> UpdateMemberDetails(int MemberId, UpdateMemberViewModel updateMember);
+        Task<bool> RemoveMember(int MemberId);
     }
 }

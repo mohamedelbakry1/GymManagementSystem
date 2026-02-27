@@ -7,9 +7,9 @@ namespace GymManagementPL.Controllers
 {
     public class HomeController(IAnalyticsService _analyticsService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var Data = _analyticsService.GetAnalyticsData();
+            var Data = await _analyticsService.GetAnalyticsData();
             return View(Data);
         }
     }

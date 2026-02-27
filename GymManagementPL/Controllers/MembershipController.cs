@@ -7,29 +7,29 @@ namespace GymManagementPL.Controllers
 {
     public class MembershipController(IMembershipService _membershipService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var Memberships = _membershipService.GetAllMemberships();
+            var Memberships = await _membershipService.GetAllMemberships();
             return View(Memberships);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            LoadDropDown();
+            await LoadDropDown();
             return View();
         }
 
         [HttpPost]
-        public IActionResult Create(CreateMembershipViewModel createMembership)
+        public async Task<IActionResult> Create(CreateMembershipViewModel createMembership)
         {
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Membership Failed To Create";
-                LoadDropDown();
+                await LoadDropDown();
                 return View(createMembership);
             }
 
-            var result = _membershipService.CreateMembership(createMembership);
+            var result = await _membershipService.CreateMembership(createMembership);
 
             if (result)
             {
@@ -39,14 +39,14 @@ namespace GymManagementPL.Controllers
             else
             {
                 TempData["ErrorMessage"] = "Membership Can not be Created, Member have an Active Membership";
-                LoadDropDown();
+                await LoadDropDown();
                 return View(createMembership);
             }
         }
 
 
         [HttpPost]
-        public IActionResult Cancel(int MemberId)
+        public async Task<IActionResult> Cancel(int MemberId)
         {
             if (MemberId <= 0)
             {
@@ -54,7 +54,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var result = _membershipService.DeleteMembership(MemberId);
+            var result = await _membershipService.DeleteMembership(MemberId);
 
             if (result)
             {
@@ -70,12 +70,12 @@ namespace GymManagementPL.Controllers
 
         #region Helper Methods
 
-        private void LoadDropDown()
+        private async Task LoadDropDown()
         {
-            var Members = _membershipService.GetMemberForDropDown();
+            var Members = await _membershipService.GetMemberForDropDown();
             ViewBag.Members = new SelectList(Members,"Id","Name");
 
-            var Plans = _membershipService.GetPlanForDropDown();
+            var Plans = await _membershipService.GetPlanForDropDown();
             ViewBag.Plans = new SelectList(Plans,"Id","Name");
         }
 

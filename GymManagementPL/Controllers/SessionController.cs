@@ -8,13 +8,13 @@ namespace GymManagementPL.Controllers
 {
     public class SessionController(ISessionService _sessionService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var Sessions = _sessionService.GetAllSessions();
+            var Sessions = await _sessionService.GetAllSessions();
             return View(Sessions);
         }
 
-        public IActionResult SessionDetails(int Id)
+        public async Task<IActionResult> SessionDetails(int Id)
         {
             if (Id <= 0)
             {
@@ -22,7 +22,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Session = _sessionService.GetSessionById(Id);
+            var Session = await _sessionService.GetSessionById(Id);
 
             if(Session is null)
             {
@@ -32,24 +32,24 @@ namespace GymManagementPL.Controllers
             return View(Session);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            LoadDropDownForCategories();
-            LoadDropDownForTrainers();
+            await LoadDropDownForCategories();
+            await LoadDropDownForTrainers();
             return View();
         }
 
         [HttpPost]
-        public IActionResult Create(CreateSessionViewModel createSession)
+        public async Task<IActionResult> Create(CreateSessionViewModel createSession)
         {
             if (!ModelState.IsValid)
             {
-                LoadDropDownForTrainers();
-                LoadDropDownForCategories();
+                await LoadDropDownForTrainers();
+                await LoadDropDownForCategories();
                 return View(createSession);
             }
 
-            var result = _sessionService.CreateSession(createSession);
+            var result = await _sessionService.CreateSession(createSession);
 
             if (result)
             {
@@ -59,13 +59,13 @@ namespace GymManagementPL.Controllers
             else
             {
                 TempData["ErrorMessage"] = "Session Failed To Create";
-                LoadDropDownForCategories();
-                LoadDropDownForTrainers();
+                await LoadDropDownForCategories();
+                await LoadDropDownForTrainers();
                 return View(createSession);
             }
         }
 
-        public IActionResult Edit(int Id)
+        public async Task<IActionResult> Edit(int Id)
         {
             if (Id <= 0)
             {
@@ -73,8 +73,8 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Session = _sessionService.GetSessionToUpdate(Id);
-            LoadDropDownForTrainers();
+            var Session = await _sessionService.GetSessionToUpdate(Id);
+            await LoadDropDownForTrainers();
 
             if (Session is null)
             {
@@ -86,15 +86,15 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(int Id, UpdateSessionViewModel updateSession)
+        public async Task<IActionResult> Edit(int Id, UpdateSessionViewModel updateSession)
         {
             if (!ModelState.IsValid)
             {
-                LoadDropDownForTrainers();
+                await LoadDropDownForTrainers();
                 return View(updateSession);
             }
 
-            var result = _sessionService.UpdateSession(Id, updateSession);
+            var result = await _sessionService.UpdateSession(Id, updateSession);
 
             if (result)
                 TempData["SuccessMessage"] = "Session Updated Successfully";
@@ -104,9 +104,9 @@ namespace GymManagementPL.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int Id)
+        public async Task<IActionResult> Delete(int Id)
         {
-            var Session = _sessionService.GetSessionById(Id);
+            var Session = await _sessionService.GetSessionById(Id);
             if(Session is null)
             {
                 TempData["ErrorMessage"] = "Session Not Found";
@@ -117,9 +117,9 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteConfirmed(int Id)
+        public async Task<IActionResult> DeleteConfirmed(int Id)
         {
-            var result = _sessionService.RemoveSession(Id);
+            var result = await _sessionService.RemoveSession(Id);
             if (result)
                 TempData["SuccessMessage"] = "Session Deleted Successfully";
             else
@@ -129,15 +129,15 @@ namespace GymManagementPL.Controllers
         }
 
         #region Helper Method
-        private void LoadDropDownForCategories()
+        private async Task LoadDropDownForCategories()
         {
-            var Categories = _sessionService.GetCategoryForDropDown();
+            var Categories = await _sessionService.GetCategoryForDropDown();
             ViewBag.Categories = new SelectList(Categories,"Id","Name");    
         }
 
-        private void LoadDropDownForTrainers()
+        private async Task LoadDropDownForTrainers()
         {
-            var Trainers = _sessionService.GetTrainerForDropDown();
+            var Trainers = await _sessionService.GetTrainerForDropDown();
             ViewBag.Trainers = new SelectList(Trainers,"Id","Name");
         }
         #endregion

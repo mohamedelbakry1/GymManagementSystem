@@ -27,9 +27,9 @@ namespace GymManagementDAL.Repositories.Classes
             return (IGenericRepository<TEntity>) _repositories.GetOrAdd(typeof(TEntity),new GenericRepository<TEntity>(_dbContext));
         }
 
-        public int SaveChanges()
+        public async Task<int> SaveChangesAsync()
         {
-            return _dbContext.SaveChanges();
+            return await _dbContext.SaveChangesAsync();
         }
     }
 }

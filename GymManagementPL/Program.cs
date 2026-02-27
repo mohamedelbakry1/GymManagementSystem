@@ -12,7 +12,7 @@ namespace GymManagementPL
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +41,7 @@ namespace GymManagementPL
             #region Data Seeding
             var Scope = app.Services.CreateScope();
             var dbContext = Scope.ServiceProvider.GetRequiredService<GymDbContext>();
-            DataSeeding.SeedData(dbContext);
+            await DataSeeding.SeedData(dbContext);
             #endregion
 
             // Configure the HTTP request pipeline.

@@ -7,6 +7,6 @@ namespace GymManagementDAL.Repositories.Interfaces
 {
     public interface IBookingRepository : IGenericRepository<Booking>
     {
-        IEnumerable<Booking> GetMembersInSession(int SessionId);
+        Task<IEnumerable<Booking>> GetMembersInSessionAsync(int SessionId);
     }
 }

@@ -6,14 +6,14 @@ namespace GymManagementPL.Controllers
 {
     public class TrainerController(ITrainerService _trainerService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var Trainers = _trainerService.GetAllTrainers();
+            var Trainers = await _trainerService.GetAllTrainers();
 
             return View(Trainers);
         }
 
-        public IActionResult TrainerDetails(int Id)
+        public async Task<IActionResult> TrainerDetails(int Id)
         {
             if(Id <= 0)
             {
@@ -21,7 +21,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Trainer = _trainerService.GetTrainerDetails(Id);
+            var Trainer = await _trainerService.GetTrainerDetails(Id);
 
             if(Trainer is null)
             {
@@ -38,7 +38,7 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateTrainer(CreateTrainerViewModel createTrainer)
+        public async Task<IActionResult> CreateTrainer(CreateTrainerViewModel createTrainer)
         {
             if (!ModelState.IsValid)
             {
@@ -46,7 +46,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Create), createTrainer);
             }
 
-            var result = _trainerService.CreateTrainer(createTrainer);
+            var result = await _trainerService.CreateTrainer(createTrainer);
 
             if (result)
                 TempData["SuccessMessage"] = "Trainer Created Successfully";
@@ -56,7 +56,7 @@ namespace GymManagementPL.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult TrainerEdit(int Id)
+        public async Task<IActionResult> TrainerEdit(int Id)
         {
             if (Id <= 0)
             {
@@ -64,7 +64,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Trainer = _trainerService.GetTrainerToUpdate(Id);
+            var Trainer = await _trainerService.GetTrainerToUpdate(Id);
 
             if (Trainer is null)
             {
@@ -76,12 +76,12 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult TrainerEdit([FromRoute] int Id, UpdateTrainerViewModel updateTrainer)
+        public async Task<IActionResult> TrainerEdit([FromRoute] int Id, UpdateTrainerViewModel updateTrainer)
         {
             if (!ModelState.IsValid)
                 return View(updateTrainer);
 
-            var result = _trainerService.UpdateTrainer(Id, updateTrainer);
+            var result = await _trainerService.UpdateTrainer(Id, updateTrainer);
 
             if (result)
                 TempData["SuccessMessage"] = "Trainer Updated Successfully";
@@ -92,7 +92,7 @@ namespace GymManagementPL.Controllers
         }
 
 
-        public IActionResult Delete(int Id)
+        public async Task<IActionResult> Delete(int Id)
         {
             if (Id <= 0)
             {
@@ -100,7 +100,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Trainer = _trainerService.GetTrainerDetails(Id);
+            var Trainer = await _trainerService.GetTrainerDetails(Id);
 
             if (Trainer is null)
             {
@@ -112,9 +112,9 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteConfirmed([FromForm] int Id)
+        public async Task<IActionResult> DeleteConfirmed([FromForm] int Id)
         {
-            var result = _trainerService.RemoveTrainer(Id);
+            var result = await _trainerService.RemoveTrainer(Id);
 
             if (result)
                 TempData["SuccessMessage"] = "Trainer Deleted Successfully";

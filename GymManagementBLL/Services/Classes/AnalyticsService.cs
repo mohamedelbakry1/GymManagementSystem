@@ -10,14 +10,19 @@ namespace GymManagementBLL.Services.Classes
 {
     public class AnalyticsService(IUnitOfWork _unitOfWork) : IAnalyticsService
     {
-        public AnalyticsViewModel? GetAnalyticsData()
+        public async Task<AnalyticsViewModel?> GetAnalyticsData()
         {
-            var Sessions = _unitOfWork.SessionRepository.GetAll();
+            var Sessions = await _unitOfWork.SessionRepository.GetAllAsync();
+
+            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync();
+            var Trainers = await _unitOfWork.GetRepository<Trainer>().GetAllAsync();
+            var Memberships = await _unitOfWork.GetRepository<Membership>().GetAllAsync(X => X.EndDate > DateTime.Now);
+
             return new AnalyticsViewModel()
             {
-                TotalMembers = _unitOfWork.GetRepository<Member>().GetAll().Count(),
-                ActiveMembers = _unitOfWork.GetRepository<Membership>().GetAll(X => X.Status == "Active").Count(),
-                TotalTrainers = _unitOfWork.GetRepository<Trainer>().GetAll().Count(),
+                TotalMembers = Members.Count(),
+                ActiveMembers = Memberships.Count(),
+                TotalTrainers = Trainers.Count(),
                 UpcomingSessions = Sessions.Count(X => X.StartDate > DateTime.Now),
                 OngoingSessions = Sessions.Count(X => X.StartDate <= DateTime.Now && X.EndDate > DateTime.Now),
                 CompletedSessions = Sessions.Count(X => X.EndDate < DateTime.Now)
