@@ -10,33 +10,33 @@ namespace GymManagementDAL.Data.DataSeed
 {
     public static class DataSeeding
     {
-        public static bool SeedData(GymDbContext _dbContext)
+        public static async Task<bool> SeedData(GymDbContext _dbContext)
         {
             try
             {
-                var PendingMigrations = _dbContext.Database.GetPendingMigrations().Any();
+                var PendingMigrations = (await _dbContext.Database.GetPendingMigrationsAsync()).Any();
                 if (PendingMigrations)
-                    _dbContext.Database.Migrate();
+                    await _dbContext.Database.MigrateAsync();
 
-                var HasPlans = _dbContext.Plans.Any();
-                var HasCategories = _dbContext.Categories.Any();
+                var HasPlans = await _dbContext.Plans.AnyAsync();
+                var HasCategories = await _dbContext.Categories.AnyAsync();
 
                 if (HasPlans && HasCategories) return false;
 
                 if (!HasPlans)
                 {
-                    var Plans = LoadDataFromJson<Plan>("plans.json");
+                    var Plans = await LoadDataFromJsonAsync<Plan>("plans.json");
                     if (Plans.Any())
-                        _dbContext.Plans.AddRange(Plans);
+                        await _dbContext.Plans.AddRangeAsync(Plans);
                 }
 
                 if (!HasCategories)
                 {
-                    var Categories = LoadDataFromJson<Category>("categories.json");
+                    var Categories = await LoadDataFromJsonAsync<Category>("categories.json");
                     if (Categories.Any())
-                        _dbContext.Categories.AddRange(Categories);
+                        await _dbContext.Categories.AddRangeAsync(Categories);
                 }
-                return _dbContext.SaveChanges() > 0;
+                return await _dbContext.SaveChangesAsync() > 0;
             }
             catch (Exception ex)
             {
@@ -45,19 +45,19 @@ namespace GymManagementDAL.Data.DataSeed
             }
         }
 
-        private static List<T> LoadDataFromJson<T>(string fileName)
+        private static async Task<List<T>> LoadDataFromJsonAsync<T>(string fileName)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\Files", fileName);
             if (!File.Exists(filePath)) throw new FileNotFoundException();
 
-            var Data = File.ReadAllText(filePath);
+            var Data = await File.ReadAllTextAsync(filePath);
 
             var Options = new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true,
             };
 
-            return JsonSerializer.Deserialize<List<T>>(Data, Options) ?? new List<T>();
+            return  JsonSerializer.Deserialize<List<T>>(Data, Options) ?? new List<T>();
         }
     }
 }

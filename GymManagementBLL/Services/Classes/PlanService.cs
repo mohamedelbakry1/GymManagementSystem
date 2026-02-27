@@ -11,42 +11,42 @@ namespace GymManagementBLL.Services.Classes
 {
     public class PlanService(IUnitOfWork _unitOfWork, IMapper _mapper) : IPlanService
     {
-        public IEnumerable<PlanViewModel> GetAllPlans()
+        public async Task<IEnumerable<PlanViewModel>> GetAllPlans()
         {
-            var Plans = _unitOfWork.GetRepository<Plan>().GetAll();
+            var Plans = await _unitOfWork.GetRepository<Plan>().GetAllAsync();
             if (Plans is null || !Plans.Any()) return [];
 
             return _mapper.Map<IEnumerable<PlanViewModel>>(Plans);
         }
 
-        public PlanViewModel? GetPlanDetails(int PlanId)
+        public async Task<PlanViewModel?> GetPlanDetails(int PlanId)
         {
-            var Plan = _unitOfWork.GetRepository<Plan>().GetById(PlanId);
+            var Plan = await _unitOfWork.GetRepository<Plan>().GetByIdAsync(PlanId);
             if (Plan is null) return null;
 
             return _mapper.Map<PlanViewModel>(Plan);
         }
 
-        public UpdatePlanViewModel? GetPlanToUpdate(int PlanId)
+        public async Task<UpdatePlanViewModel?> GetPlanToUpdate(int PlanId)
         {
-            var Plan = _unitOfWork.GetRepository<Plan>().GetById(PlanId);
-            if(Plan is null || Plan.IsActive == false || HasActiveMemberships(PlanId)) return null;
+            var Plan = await _unitOfWork.GetRepository<Plan>().GetByIdAsync(PlanId);
+            if(Plan is null || Plan.IsActive == false || await HasActiveMemberships(PlanId)) return null;
 
             return _mapper.Map<UpdatePlanViewModel>(Plan);
         }
 
-        public bool UpdatePlanDetails(int PlanId, UpdatePlanViewModel updatePlan)
+        public async Task<bool> UpdatePlanDetails(int PlanId, UpdatePlanViewModel updatePlan)
         {
             var PlanRepo = _unitOfWork.GetRepository<Plan>();
-            var Plan = PlanRepo.GetById(PlanId);
-            if (Plan is null || HasActiveMemberships(PlanId)) return false;
+            var Plan = await PlanRepo.GetByIdAsync(PlanId);
+            if (Plan is null || await HasActiveMemberships(PlanId)) return false;
             try
             {
                 _mapper.Map(updatePlan, Plan);
                 Plan.UpdatedAt = DateTime.Now;
 
                 PlanRepo.Update(Plan);
-                return _unitOfWork.SaveChanges() > 0;
+                return await _unitOfWork.SaveChangesAsync() > 0;
             }
             catch(Exception ex)
             {
@@ -55,17 +55,17 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public bool ToggleStatus(int PlanId)
+        public async Task<bool> ToggleStatus(int PlanId)
         {
             var PlanRepo = _unitOfWork.GetRepository<Plan>();
-            var Plan = PlanRepo.GetById(PlanId);
-            if(Plan is null || HasActiveMemberships(PlanId)) return false;
+            var Plan = await PlanRepo.GetByIdAsync(PlanId);
+            if(Plan is null || await HasActiveMemberships(PlanId)) return false;
             try
             {
                 Plan.IsActive = Plan.IsActive == true ? false : true;
                 Plan.UpdatedAt = DateTime.Now;
                 PlanRepo.Update(Plan);
-                return _unitOfWork.SaveChanges() > 0;
+                return await _unitOfWork.SaveChangesAsync() > 0;
             }
             catch(Exception ex)
             {
@@ -75,10 +75,10 @@ namespace GymManagementBLL.Services.Classes
         }
 
         #region Helper Methods
-        private bool HasActiveMemberships(int PlanId)
+        private async Task<bool> HasActiveMemberships(int PlanId)
         {
-            var ActiveMembership = _unitOfWork.GetRepository<Membership>()
-                                              .GetAll(X => X.PlanId == PlanId && X.Status == "Active");
+            var ActiveMembership = await _unitOfWork.GetRepository<Membership>()
+                                              .GetAllAsync(X => X.PlanId == PlanId && X.Status == "Active");
             return ActiveMembership.Any();
         }
         #endregion

@@ -16,9 +16,9 @@ namespace GymManagementDAL.Repositories.Classes
         {
             this._dbContext = dbContext;
         }
-        public IEnumerable<Membership> GetAllMembershipsWithPlanAndMember()
+        public async Task<IEnumerable<Membership>> GetAllMembershipsWithPlanAndMemberAsync()
         {
-            return _dbContext.Memberships.Include(M => M.Plan).Include(M => M.Member).ToList();
+            return await _dbContext.Memberships.Include(M => M.Plan).Include(M => M.Member).ToListAsync();
         }
 
         

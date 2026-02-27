@@ -4,31 +4,33 @@ using GymManagementDAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
 {
     public class GenericRepository<TEntity>(GymDbContext _dbContext) : IGenericRepository<TEntity> where TEntity : BaseEntity, new()
     {
-        public IEnumerable<TEntity> GetAll(Func<TEntity,bool>? condition = null)
+        public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity,bool>>? condition = null)
         {
             if (condition is null)
-                return _dbContext.Set<TEntity>().AsNoTracking().ToList();
+                return await _dbContext.Set<TEntity>().AsNoTracking().ToListAsync();
             else
-                return _dbContext.Set<TEntity>().AsNoTracking().Where(condition).ToList();
+                return await _dbContext.Set<TEntity>().AsNoTracking()
+                       .Where(condition).ToListAsync();
         }
 
-        public TEntity? GetById(int id, Func<TEntity, bool>? condition = null)
+        public async Task<TEntity?> GetByIdAsync(int id, Expression<Func<TEntity, bool>>? condition = null)
         {
             if (condition is not null)
-            return _dbContext.Set<TEntity>().Where(condition).FirstOrDefault();
+            return await _dbContext.Set<TEntity>().Where(condition).FirstOrDefaultAsync();
 
-            return _dbContext.Set<TEntity>().Find(id);
+            return await _dbContext.Set<TEntity>().FindAsync(id);
         }
 
-        public void Add(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
-            _dbContext.Set<TEntity>().Add(entity);
+            await _dbContext.Set<TEntity>().AddAsync(entity);
         }
 
         public void Update(TEntity entity)

@@ -11,7 +11,7 @@ namespace GymManagementBLL.Services.AttachmentService
         private readonly string[] allowedExtensions = { ".jpg", ".jpeg", ".png" };
         private readonly long maxFileSize = 5 * 1024 * 1024;
 
-        public string? Upload(string folderName, IFormFile file)
+        public async Task<string?> Upload(string folderName, IFormFile file)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace GymManagementBLL.Services.AttachmentService
                 var filePath = Path.Combine(folderPath, fileName);
 
                 using var fileStream = new FileStream(filePath, FileMode.Create);
-                file.CopyTo(fileStream);
+                await file.CopyToAsync(fileStream);
 
                 return fileName;
             }

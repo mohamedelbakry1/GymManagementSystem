@@ -17,9 +17,9 @@ namespace GymManagementDAL.Repositories.Classes
             this._dbContext = dbContext;
         }
 
-        public IEnumerable<Booking> GetMembersInSession(int SessionId)
+        public async Task<IEnumerable<Booking>> GetMembersInSessionAsync(int SessionId)
         {
-            return _dbContext.Bookings.Where(X => X.SessionId == SessionId).Include(X => X.Member).ToList();
+            return await _dbContext.Bookings.Where(X => X.SessionId == SessionId).Include(X => X.Member).ToListAsync();
         }
     }
 }

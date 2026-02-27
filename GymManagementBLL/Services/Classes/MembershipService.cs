@@ -16,30 +16,30 @@ namespace GymManagementBLL.Services.Classes
 {
     public class MembershipService(IUnitOfWork _unitOfWork, IMapper _mapper) : IMembershipService
     {
-        public IEnumerable<MembershipViewModel> GetAllMemberships()
+        public async Task<IEnumerable<MembershipViewModel>> GetAllMemberships()
         {
-            var Memberships = _unitOfWork.MembershipRepository.GetAllMembershipsWithPlanAndMember();
+            var Memberships = await _unitOfWork.MembershipRepository.GetAllMembershipsWithPlanAndMemberAsync();
 
             return _mapper.Map<IEnumerable<MembershipViewModel>>(Memberships);
         }
 
-        public bool CreateMembership(CreateMembershipViewModel createMembership)
+        public async Task<bool> CreateMembership(CreateMembershipViewModel createMembership)
         {
-            if(!IsMemberExist(createMembership.MemberId)) return false;
-            if(!IsPlanExist(createMembership.PlanId)) return false;
+            if(! await IsMemberExist(createMembership.MemberId)) return false;
+            if(! await IsPlanExist(createMembership.PlanId)) return false;
 
-            if(HasActiveMemberships(createMembership.MemberId)) return false;
+            if(await HasActiveMemberships(createMembership.MemberId)) return false;
 
             try
             {
-                var Plan = _unitOfWork.GetRepository<Plan>().GetById(createMembership.PlanId);
+                var Plan = await _unitOfWork.GetRepository<Plan>().GetByIdAsync(createMembership.PlanId);
                 var membership = _mapper.Map<Membership>(createMembership);
 
                 membership.EndDate = membership.CreatedAt.AddDays(Plan!.DurationDays);
 
-                _unitOfWork.MembershipRepository.Add(membership);
+                await _unitOfWork.MembershipRepository.AddAsync(membership);
 
-                return _unitOfWork.SaveChanges() > 0;
+                return await _unitOfWork.SaveChangesAsync() > 0;
             }
             catch(Exception ex) 
             {
@@ -49,21 +49,21 @@ namespace GymManagementBLL.Services.Classes
 
         }
 
-        public bool DeleteMembership(int MemberId)
+        public async Task<bool> DeleteMembership(int MemberId)
         {
-            if (!IsMemberExist(MemberId)) return false;
+            if (! await IsMemberExist(MemberId)) return false;
 
-            if(!HasActiveMemberships(MemberId)) return false;
+            if(!await HasActiveMemberships(MemberId)) return false;
 
             try
             {
-                var Membership = _unitOfWork.MembershipRepository
-                    .GetAll(X => X.MemberId == MemberId && X.Status == "Active").FirstOrDefault();
+                var Membership = (await _unitOfWork.MembershipRepository
+                    .GetAllAsync(X => X.MemberId == MemberId && X.EndDate > DateTime.Now)).FirstOrDefault();
 
                 if (Membership is null) return false;
 
                 _unitOfWork.MembershipRepository.Delete(Membership);
-                return _unitOfWork.SaveChanges() > 0;
+                return await _unitOfWork.SaveChangesAsync() > 0;
             }
             catch(Exception ex)
             {
@@ -72,35 +72,35 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public IEnumerable<MemberSelectViewModel> GetMemberForDropDown()
+        public async Task<IEnumerable<MemberSelectViewModel>> GetMemberForDropDown()
         {
-            var Members = _unitOfWork.GetRepository<Member>().GetAll();
+            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync();
 
             return _mapper.Map<IEnumerable<MemberSelectViewModel>>(Members);
         }
 
-        public IEnumerable<PlanSelectViewModel> GetPlanForDropDown()
+        public async Task<IEnumerable<PlanSelectViewModel>> GetPlanForDropDown()
         {
-            var Plans = _unitOfWork.GetRepository<Plan>().GetAll();
+            var Plans = await _unitOfWork.GetRepository<Plan>().GetAllAsync();
             return _mapper.Map<IEnumerable<PlanSelectViewModel>>(Plans);
         }
 
         #region Helper Methods
 
-        private bool IsMemberExist(int MemberId)
+        private async Task<bool> IsMemberExist(int MemberId)
         {
-            return _unitOfWork.GetRepository<Member>().GetById(MemberId) is not null;
+            return await _unitOfWork.GetRepository<Member>().GetByIdAsync(MemberId) is not null;
         }
 
-        private bool IsPlanExist(int PlanId)
+        private async Task<bool> IsPlanExist(int PlanId)
         {
-            return _unitOfWork.GetRepository<Plan>().GetById(PlanId,X => X.IsActive == true) is not null;
+            return await _unitOfWork.GetRepository<Plan>().GetByIdAsync(PlanId,X => X.IsActive == true) is not null;
         }
 
-        private bool HasActiveMemberships(int MemberId)
+        private async Task<bool> HasActiveMemberships(int MemberId)
         {
-            return _unitOfWork.MembershipRepository
-                    .GetAll(X => X.MemberId == MemberId && X.Status == "Active").Any();
+            return (await _unitOfWork.MembershipRepository
+                    .GetAllAsync(X => X.MemberId == MemberId && X.EndDate > DateTime.Now)).Any();
         }
         #endregion
     }
