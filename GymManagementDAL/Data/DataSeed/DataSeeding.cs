@@ -14,10 +14,6 @@ namespace GymManagementDAL.Data.DataSeed
         {
             try
             {
-                var PendingMigrations = (await _dbContext.Database.GetPendingMigrationsAsync()).Any();
-                if (PendingMigrations)
-                    await _dbContext.Database.MigrateAsync();
-
                 var HasPlans = await _dbContext.Plans.AnyAsync();
                 var HasCategories = await _dbContext.Categories.AnyAsync();
 

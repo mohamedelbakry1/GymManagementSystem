@@ -1,5 +1,8 @@
 ﻿
 @model IEnumerable<MemberBookingViewModel>
+@{
+    ViewData["Title"] = "Upcoming Session Members";
+}
 
 @if(TempData["SuccessMessage"] is not null)
 {
