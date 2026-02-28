@@ -1,6 +1,8 @@
 ﻿
 @model IEnumerable<MemberViewModel>
-
+@{
+    ViewData["Title"] = "Members";
+}
 
 @if(TempData["SuccessMessage"] is not null)
 {

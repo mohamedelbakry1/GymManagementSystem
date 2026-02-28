@@ -1,5 +1,9 @@
 ﻿@model IEnumerable<SessionViewModel>
 
+    @{
+    ViewData["Title"] = "Manage Bookings";
+    }
+
 <div class="container">
     @if (Model is not null && Model.Any())
     {

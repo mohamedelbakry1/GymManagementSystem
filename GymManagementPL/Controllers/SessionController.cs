@@ -1,11 +1,13 @@
 ﻿using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.SessionViewModels;
 using GymManagementSystemBLL.ViewModels.SessionViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GymManagementPL.Controllers
 {
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public class SessionController(ISessionService _sessionService) : Controller
     {
         public async Task<IActionResult> Index()

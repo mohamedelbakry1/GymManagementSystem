@@ -1,9 +1,11 @@
 ﻿using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.PlanViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GymManagementPL.Controllers
 {
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public class PlanController(IPlanService _planService) : Controller
     {
         public async Task<IActionResult> Index()

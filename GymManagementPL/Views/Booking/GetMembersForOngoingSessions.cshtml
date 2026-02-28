@@ -1,5 +1,8 @@
 ﻿
 @model IEnumerable<MemberAttendanceViewModel>
+@{
+    ViewData["Title"] = "Ongoing Session Members";
+}
 
 @if (TempData["SuccessMessage"] is not null)
 {

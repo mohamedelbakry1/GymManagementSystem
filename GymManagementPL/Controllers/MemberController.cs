@@ -1,9 +1,11 @@
 ﻿using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.MemberViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GymManagementPL.Controllers
 {
+    [Authorize(Roles = "SuperAdmin")]
     public class MemberController(IMemberService _memberService) : Controller
     {
         public async Task<IActionResult> Index()
