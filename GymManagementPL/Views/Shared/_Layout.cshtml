@@ -51,6 +51,10 @@
                                         <a class="nav-link @(currentController == "Trainer" ? "active" : "") px-3 py-2 mx-2 fw-bolder fs-5"
                                         asp-controller="Trainer" asp-action="Index">Trainers</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link @(currentController == "User" ? "active" : "") px-3 py-2 mx-2 fw-bolder fs-5"
+                                        asp-controller="User" asp-action="Index">Users</a>
+                                    </li>
                                 }
                                 <li class="nav-item">
                             <a class="nav-link @(currentController == "Session" ? "active" : "") px-3 py-2 mx-2 fw-bolder fs-5"
