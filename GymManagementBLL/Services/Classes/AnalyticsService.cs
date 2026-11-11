@@ -8,24 +8,27 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class AnalyticsService(IUnitOfWork _unitOfWork) : IAnalyticsService
+    internal class AnalyticsService(IUnitOfWork _unitOfWork) : IAnalyticsService
     {
-        public async Task<AnalyticsViewModel?> GetAnalyticsData()
+        public async Task<AnalyticsViewModel?> GetAnalyticsDataAsync(CancellationToken ct = default)
         {
-            var Sessions = await _unitOfWork.SessionRepository.GetAllAsync();
+            var sessionRepo = _unitOfWork.GetRepository<Session>();
+            var upcomingSessions = await sessionRepo.CountAsync(x => x.StartDate > DateTime.Now, ct);
+            var ongoingSessions = await sessionRepo.CountAsync(x => x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now, ct);
+            var completedSessions = await sessionRepo.CountAsync(x => x.EndDate < DateTime.Now, ct);
 
-            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync();
-            var Trainers = await _unitOfWork.GetRepository<Trainer>().GetAllAsync();
-            var Memberships = await _unitOfWork.GetRepository<Membership>().GetAllAsync(X => X.EndDate > DateTime.Now);
+            var Members = await _unitOfWork.GetRepository<Member>().CountAsync(ct: ct);
+            var Trainers = await _unitOfWork.GetRepository<Trainer>().CountAsync(ct: ct);
+            var Memberships = await _unitOfWork.GetRepository<Membership>().CountAsync(X => X.EndDate > DateTime.Now, ct: ct);
 
             return new AnalyticsViewModel()
             {
-                TotalMembers = Members.Count(),
-                ActiveMembers = Memberships.Count(),
-                TotalTrainers = Trainers.Count(),
-                UpcomingSessions = Sessions.Count(X => X.StartDate > DateTime.Now),
-                OngoingSessions = Sessions.Count(X => X.StartDate <= DateTime.Now && X.EndDate > DateTime.Now),
-                CompletedSessions = Sessions.Count(X => X.EndDate < DateTime.Now)
+                TotalMembers = Members,
+                ActiveMembers = Memberships,
+                TotalTrainers = Trainers,
+                UpcomingSessions = upcomingSessions,
+                OngoingSessions = ongoingSessions,
+                CompletedSessions = completedSessions
             };
         }
     }

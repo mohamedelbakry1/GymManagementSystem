@@ -8,7 +8,7 @@ using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
 {
-    public class MembershipRepository : GenericRepository<Membership>, IMembershipRepository
+    internal class MembershipRepository : GenericRepository<Membership>, IMembershipRepository
     {
         private readonly GymDbContext _dbContext;
 
@@ -16,9 +16,9 @@ namespace GymManagementDAL.Repositories.Classes
         {
             this._dbContext = dbContext;
         }
-        public async Task<IEnumerable<Membership>> GetAllMembershipsWithPlanAndMemberAsync()
+        public async Task<IEnumerable<Membership>> GetAllMembershipsWithPlanAndMemberAsync(CancellationToken ct = default)
         {
-            return await _dbContext.Memberships.Include(M => M.Plan).Include(M => M.Member).ToListAsync();
+            return await _dbContext.Memberships.Include(M => M.Plan).Include(M => M.Member).ToListAsync(ct);
         }
 
         

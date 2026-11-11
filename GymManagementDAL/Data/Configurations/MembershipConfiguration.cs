@@ -7,7 +7,7 @@ using System.Text;
 
 namespace GymManagementDAL.Data.Configurations
 {
-    public class MembershipConfiguration : IEntityTypeConfiguration<Membership>
+    internal class MembershipConfiguration : IEntityTypeConfiguration<Membership>
     {
         public void Configure(EntityTypeBuilder<Membership> builder)
         {

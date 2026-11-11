@@ -8,7 +8,7 @@ using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
 {
-    public class BookingRepository : GenericRepository<Booking>, IBookingRepository
+    internal class BookingRepository : GenericRepository<Booking>, IBookingRepository
     {
         private readonly GymDbContext _dbContext;
 
@@ -17,9 +17,9 @@ namespace GymManagementDAL.Repositories.Classes
             this._dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Booking>> GetMembersInSessionAsync(int SessionId)
+        public async Task<IEnumerable<Booking>> GetMembersInSessionAsync(int SessionId, CancellationToken ct = default)
         {
-            return await _dbContext.Bookings.Where(X => X.SessionId == SessionId).Include(X => X.Member).ToListAsync();
+            return await _dbContext.Bookings.Where(X => X.SessionId == SessionId).Include(X => X.Member).ToListAsync(ct);
         }
     }
 }

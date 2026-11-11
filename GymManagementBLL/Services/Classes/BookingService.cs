@@ -10,66 +10,62 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class BookingService(IUnitOfWork _unitOfWork, IMapper _mapper) : IBookingService
+    internal class BookingService(IUnitOfWork _unitOfWork, IMapper _mapper) : IBookingService
     {
-        public async Task<IEnumerable<SessionViewModel>> GetAllSessionsUpcomingAndOngoing()
+        public async Task<IEnumerable<SessionViewModel>> GetAllSessionsUpcomingAndOngoingAsync(CancellationToken ct = default)
         {
             var SessionRepo = _unitOfWork.SessionRepository;
             var Sessions = await SessionRepo
-                .GetAllSessionsWithTrainerAndCategoryAsync(X => X.StartDate > DateTime.Now || X.StartDate < DateTime.Now && X.EndDate > DateTime.Now);
+                .GetAllSessionsWithTrainerAndCategoryAndBookingsAsync(X => X.StartDate > DateTime.Now || X.StartDate < DateTime.Now && X.EndDate > DateTime.Now, ct);
 
             if (Sessions is null) return [];
 
             var MappedSessions = _mapper.Map<IEnumerable<SessionViewModel>>(Sessions);
-
-            foreach(var Session in MappedSessions)
-                Session.AvailableSlots = Session.Capacity - await SessionRepo.GetCountOfBookingsAsync(Session.Id);
-
             return MappedSessions;
         }
 
-        public async Task<IEnumerable<MemberBookingViewModel>> GetAllMembersForUpcomingSession(int SessionId)
+        public async Task<IEnumerable<MemberBookingViewModel>> GetAllMembersForUpcomingSessionAsync(int SessionId, CancellationToken ct = default)
         {
-            var Members = await _unitOfWork.BookingRepository.GetMembersInSessionAsync(SessionId);
+            var Members = await _unitOfWork.BookingRepository.GetMembersInSessionAsync(SessionId, ct);
             if(Members is null) return [];
 
             return _mapper.Map<IEnumerable<MemberBookingViewModel>>(Members);
         }
 
-        public async Task<IEnumerable<MemberAttendanceViewModel>> GetAllMembersForOngoingSession(int SessionId)
+        public async Task<IEnumerable<MemberAttendanceViewModel>> GetAllMembersForOngoingSessionAsync(int SessionId, CancellationToken ct = default)
         {
-            var Members = await _unitOfWork.BookingRepository.GetMembersInSessionAsync(SessionId);
+            var Members = await _unitOfWork.BookingRepository.GetMembersInSessionAsync(SessionId, ct);
             if(Members is null) return [];
 
             return _mapper.Map<IEnumerable<MemberAttendanceViewModel>>(Members);
         }
 
-        public async Task<IEnumerable<MemberSelectViewModel>> GetMembersForDropDown(int Id)
+        public async Task<IEnumerable<MemberSelectViewModel>> GetMembersForDropDownAsync(int Id, CancellationToken ct = default)
         {
-            var Bookings = (await _unitOfWork.BookingRepository.GetAllAsync(X => X.Id == Id))
+            var Bookings = (await _unitOfWork.BookingRepository.GetAllAsync(X => X.Id == Id, ct))
                                                         .Select(X => X.MemberId)
                                                         .ToList();
 
-            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync(X => !Bookings.Contains(X.Id));
+            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync(X => !Bookings.Contains(X.Id), ct);
 
             if(Members is null) return [];
 
             return _mapper.Map<IEnumerable<MemberSelectViewModel>>(Members);
         }
 
-        public async Task<bool> CreateBooking(CreateBookingViewModel createBooking)
+        public async Task<bool> CreateBookingAsync(CreateBookingViewModel createBooking, CancellationToken ct = default)
         {
-            var HasActiveMembership = await _unitOfWork.MembershipRepository
-                                            .GetByIdAsync(createBooking.MemberId, X => X.EndDate > DateTime.Now);
+            var HasActiveMembership = (await _unitOfWork.MembershipRepository
+                                            .GetAllAsync(x => x.MemberId == createBooking.MemberId && x.EndDate > DateTime.Now, ct)).Any();
 
-            if(HasActiveMembership is null) return false;
+            if(!HasActiveMembership) return false;
 
             var SessionRepo = _unitOfWork.SessionRepository;
 
-            var Session = await SessionRepo.GetByIdAsync(createBooking.SessionId, X => X.StartDate > DateTime.Now);
+            var Session = await SessionRepo.GetByIdAsync(createBooking.SessionId, X => X.StartDate > DateTime.Now, ct);
             if(Session is null) return false;
 
-            var BookingsCount = await SessionRepo.GetCountOfBookingsAsync(createBooking.SessionId);
+            var BookingsCount = await SessionRepo.GetCountOfBookingsAsync(createBooking.SessionId, ct);
 
             var AvailableSlots = Session.Capacity - BookingsCount;
             if(AvailableSlots == 0) return false;
@@ -79,8 +75,8 @@ namespace GymManagementBLL.Services.Classes
                 var Booking = _mapper.Map<Booking>(createBooking);
                 Booking.IsAttended = false;
 
-                await _unitOfWork.BookingRepository.AddAsync(Booking);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                _unitOfWork.BookingRepository.Add(Booking);
+                return await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch(Exception ex)
             {
@@ -89,19 +85,19 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<bool> MarkAttendance(int SessionId, int MemberId)
+        public async Task<bool> MarkAttendanceAsync(int SessionId, int MemberId, CancellationToken ct = default)
         {
             try
             {
                 var BookingRepo = _unitOfWork.BookingRepository;
                 var Booking = (await BookingRepo
-                             .GetAllAsync(X => X.SessionId == SessionId && X.MemberId == MemberId))
+                             .GetAllAsync(X => X.SessionId == SessionId && X.MemberId == MemberId, ct))
                              .FirstOrDefault();
 
                 if (Booking is null) return false;
                 Booking.IsAttended = true;
                 BookingRepo.Update(Booking);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                return await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch (Exception ex)
             {
@@ -110,23 +106,23 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<bool> CancelBooking(int SessionId, int MemberId)
+        public async Task<bool> CancelBookingAsync(int SessionId, int MemberId, CancellationToken ct = default)
         {
             try
             {
                 var BookingRepo = _unitOfWork.BookingRepository;
                 var Booking = (await BookingRepo
-                .GetAllAsync(X => X.SessionId == SessionId && X.MemberId == MemberId))
+                .GetAllAsync(X => X.SessionId == SessionId && X.MemberId == MemberId, ct))
                 .FirstOrDefault();
 
                 if (Booking is null) return false;
 
-                var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId);
+                var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId, ct: ct);
 
                 if (Session is null || Session.StartDate <= DateTime.Now) return false;
 
                 BookingRepo.Delete(Booking);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                return await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch (Exception ex)
             {

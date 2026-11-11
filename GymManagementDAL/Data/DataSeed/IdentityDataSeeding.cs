@@ -1,5 +1,6 @@
 ﻿using GymManagementDAL.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,8 +13,8 @@ namespace GymManagementDAL.Data.DataSeed
         {
             try
             {
-                var HasRoles = _roleManager.Roles.Any();
-                var HasUsers = _userManager.Users.Any();
+                var HasRoles = await _roleManager.Roles.AnyAsync();
+                var HasUsers = await _userManager.Users.AnyAsync();
 
                 if (HasRoles && HasUsers) return false;
 

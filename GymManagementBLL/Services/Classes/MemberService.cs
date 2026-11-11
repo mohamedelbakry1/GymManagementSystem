@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class MemberService(IUnitOfWork _unitOfWork, IMapper _mapper, IAttachmentService _attachmentService) : IMemberService
+    internal class MemberService(IUnitOfWork _unitOfWork, IMapper _mapper, IAttachmentService _attachmentService) : IMemberService
     {
-        public async Task<IEnumerable<MemberViewModel>> GetAllMembers()
+        public async Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default)
         {
-            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync();
+            var Members = await _unitOfWork.GetRepository<Member>().GetAllAsync(ct: ct);
             if (Members is null || !Members.Any()) return [];
 
             var MembersViewModel = _mapper.Map<IEnumerable<MemberViewModel>>(Members);
@@ -23,20 +23,20 @@ namespace GymManagementBLL.Services.Classes
             return MembersViewModel;
         }
 
-        public async Task<MemberViewModel?> GetMemberDetails(int MemberId)
+        public async Task<MemberViewModel?> GetMemberDetailsAsync(int MemberId, CancellationToken ct = default)
         {
-            var Member = await _unitOfWork.GetRepository<Member>().GetByIdAsync(MemberId);
+            var Member = await _unitOfWork.GetRepository<Member>().GetByIdAsync(MemberId, ct: ct);
             if (Member is null) return null;
 
             var MemberViewModel = _mapper.Map<MemberViewModel>(Member);
 
             var ActiveMembership = (await _unitOfWork.GetRepository<Membership>()
-                                    .GetAllAsync(X => X.Id == MemberId && X.EndDate > DateTime.Now))
+                                    .GetAllAsync(X => X.MemberId == MemberId && X.EndDate > DateTime.Now, ct))
                                     .FirstOrDefault();
 
             if (ActiveMembership is not null)
             {
-                var Plan = await _unitOfWork.GetRepository<Plan>().GetByIdAsync(ActiveMembership.PlanId);
+                var Plan = await _unitOfWork.GetRepository<Plan>().GetByIdAsync(ActiveMembership.PlanId, ct: ct);
 
                 MemberViewModel.PlanName = Plan?.Name;
                 MemberViewModel.MembershipStartDate = ActiveMembership.CreatedAt.ToShortDateString();
@@ -45,19 +45,19 @@ namespace GymManagementBLL.Services.Classes
             return MemberViewModel;
         }
 
-        public async Task<HealthRecordViewModel?> GetMemberHealthRecordDetails(int MemberId)
+        public async Task<HealthRecordViewModel?> GetMemberHealthRecordDetailsAsync(int MemberId, CancellationToken ct = default)
         {
-            var MemberHealthRecord = await _unitOfWork.GetRepository<HealthRecord>().GetByIdAsync(MemberId);
+            var MemberHealthRecord = await _unitOfWork.GetRepository<HealthRecord>().GetByIdAsync(MemberId, ct: ct);
             if (MemberHealthRecord is null) return null;
 
             return _mapper.Map<HealthRecordViewModel>(MemberHealthRecord);
         }
 
-        public async Task<bool> CreateMember(CreateMemberViewModel createMember)
+        public async Task<bool> CreateMemberAsync(CreateMemberViewModel createMember, CancellationToken ct = default)
         {
             try
             {
-                if (await IsEmailExist(createMember.Email) || await IsPhoneExist(createMember.Phone)) return false;
+                if (await IsEmailExistAsync(createMember.Email, ct) || await IsPhoneExistAsync(createMember.Phone, ct)) return false;
 
                 var PhotoName = await _attachmentService.Upload("Members", createMember.PhotoFile);
                 if(string.IsNullOrEmpty(PhotoName)) return false;
@@ -65,8 +65,8 @@ namespace GymManagementBLL.Services.Classes
                 var Member = _mapper.Map<Member>(createMember);
                 Member.Photo = PhotoName;
 
-                await _unitOfWork.GetRepository<Member>().AddAsync(Member);
-                var IsCreated = await _unitOfWork.SaveChangesAsync() > 0;
+                _unitOfWork.GetRepository<Member>().Add(Member);
+                var IsCreated = await _unitOfWork.SaveChangesAsync(ct) > 0;
 
                 if (!IsCreated)
                 {
@@ -82,27 +82,27 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<UpdateMemberViewModel?> GetMemberToUpdate(int MemberId)
+        public async Task<UpdateMemberViewModel?> GetMemberToUpdateAsync(int MemberId, CancellationToken ct = default)
         {
-            var Member = await _unitOfWork.GetRepository<Member>().GetByIdAsync(MemberId);
+            var Member = await _unitOfWork.GetRepository<Member>().GetByIdAsync(MemberId, ct: ct);
             if (Member is null) return null;
 
             return _mapper.Map<UpdateMemberViewModel>(Member);
         }
 
-        public async Task<bool> UpdateMemberDetails(int MemberId, UpdateMemberViewModel updateMember)
+        public async Task<bool> UpdateMemberDetailsAsync(int MemberId, UpdateMemberViewModel updateMember, CancellationToken ct = default)
         {
             var MemberRepo = _unitOfWork.GetRepository<Member>();
 
-            var emailExist = (await MemberRepo.GetAllAsync(X => X.Email == updateMember.Email && X.Id != MemberId)).Any();
+            var emailExist = (await MemberRepo.GetAllAsync(X => X.Email == updateMember.Email && X.Id != MemberId, ct)).Any();
 
-            var phoneExist = (await MemberRepo.GetAllAsync(X => X.Phone == updateMember.Phone && X.Id != MemberId)).Any();
+            var phoneExist = (await MemberRepo.GetAllAsync(X => X.Phone == updateMember.Phone && X.Id != MemberId, ct)).Any();
 
             if (emailExist || phoneExist) return false;
 
             try
             {
-                var Member = await MemberRepo.GetByIdAsync(MemberId);
+                var Member = await MemberRepo.GetByIdAsync(MemberId, ct: ct);
                 if (Member is null) return false;
 
                 _mapper.Map(updateMember, Member);
@@ -110,7 +110,7 @@ namespace GymManagementBLL.Services.Classes
                 Member.UpdatedAt = DateTime.Now;
 
                 MemberRepo.Update(Member);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                return await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch(Exception ex)
             {
@@ -119,22 +119,22 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<bool> RemoveMember(int MemberId)
+        public async Task<bool> RemoveMemberAsync(int MemberId, CancellationToken ct = default)
         {
             var MemberRepo = _unitOfWork.GetRepository<Member>();
-            var Member = await MemberRepo.GetByIdAsync(MemberId);
+            var Member = await MemberRepo.GetByIdAsync(MemberId, ct: ct);
             if(Member is null) return false;
 
             var SessionIdsInBooking = (await _unitOfWork.GetRepository<Booking>()
-                                 .GetAllAsync(X => X.MemberId == MemberId)).Select(X => X.SessionId);
+                                 .GetAllAsync(X => X.MemberId == MemberId, ct)).Select(X => X.SessionId);
             var HasFutureSessions = (await _unitOfWork.GetRepository<Session>()
-                .GetAllAsync(X => SessionIdsInBooking.Contains(X.Id) && X.StartDate > DateTime.Now)).Any();
+                .GetAllAsync(X => SessionIdsInBooking.Contains(X.Id) && X.StartDate > DateTime.Now, ct)).Any();
 
             if (HasFutureSessions) return false;
 
             var MembershipRepo = _unitOfWork.GetRepository<Membership>();
 
-            var Memberships = await MembershipRepo.GetAllAsync(X => X.MemberId == MemberId);
+            var Memberships = await MembershipRepo.GetAllAsync(X => X.MemberId == MemberId, ct);
             try
             {
                 if (Memberships.Any())
@@ -145,7 +145,7 @@ namespace GymManagementBLL.Services.Classes
                     }
                 }
                 MemberRepo.Delete(Member);
-                var IsDeleted = await _unitOfWork.SaveChangesAsync() > 0;
+                var IsDeleted = await _unitOfWork.SaveChangesAsync(ct) > 0;
                 if (IsDeleted)
                     _attachmentService.Delete("Members", Member.Photo);
                     
@@ -159,14 +159,14 @@ namespace GymManagementBLL.Services.Classes
         }
 
         #region Helper Methods
-        private async Task<bool> IsEmailExist(string email)
+        private async Task<bool> IsEmailExistAsync(string email, CancellationToken ct = default)
         {
-            return (await _unitOfWork.GetRepository<Member>().GetAllAsync(X => X.Email == email)).Any();
+            return (await _unitOfWork.GetRepository<Member>().GetAllAsync(X => X.Email == email, ct)).Any();
         }
 
-        private async Task<bool> IsPhoneExist(string phone)
+        private async Task<bool> IsPhoneExistAsync(string phone, CancellationToken ct = default)
         {
-            return (await _unitOfWork.GetRepository<Member>().GetAllAsync(X => X.Phone == phone)).Any();
+            return (await _unitOfWork.GetRepository<Member>().GetAllAsync(X => X.Phone == phone, ct)).Any();
         }
         #endregion
     }

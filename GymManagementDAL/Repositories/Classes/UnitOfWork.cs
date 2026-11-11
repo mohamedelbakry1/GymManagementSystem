@@ -24,12 +24,12 @@ namespace GymManagementDAL.Repositories.Classes
 
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()
         {
-            return (IGenericRepository<TEntity>) _repositories.GetOrAdd(typeof(TEntity),new GenericRepository<TEntity>(_dbContext));
+            return (IGenericRepository<TEntity>) _repositories.GetOrAdd(typeof(TEntity),_ => new GenericRepository<TEntity>(_dbContext));
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
-            return await _dbContext.SaveChangesAsync();
+            return await _dbContext.SaveChangesAsync(ct);
         }
     }
 }

@@ -8,8 +8,8 @@ namespace GymManagementDAL.Repositories.Interfaces
 {
     public interface ISessionRepository : IGenericRepository<Session>
     {
-        Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategoryAsync(Expression<Func<Session, bool>>? condition = null);
-        Task<Session?> GetSessionWithTrainerAndCategoryAsync(int SessionId);
-        Task<int> GetCountOfBookingsAsync(int SessionId);
+        Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategoryAndBookingsAsync(Expression<Func<Session, bool>>? condition = null, CancellationToken ct = default);
+        Task<Session?> GetSessionWithTrainerAndCategoryAndBookingsAsync(int SessionId, CancellationToken ct = default);
+        Task<int> GetCountOfBookingsAsync(int SessionId, CancellationToken ct = default);
     }
 }

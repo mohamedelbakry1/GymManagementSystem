@@ -10,34 +10,31 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class SessionService(IUnitOfWork _unitOfWork, IMapper _mapper) : ISessionService
+    internal class SessionService(IUnitOfWork _unitOfWork, IMapper _mapper) : ISessionService
     {
-        public async Task<IEnumerable<SessionViewModel>> GetAllSessions()
+        public async Task<IEnumerable<SessionViewModel>> GetAllSessionsAsync(CancellationToken ct = default)
         {
-            var Sessions = await _unitOfWork.SessionRepository.GetAllSessionsWithTrainerAndCategoryAsync();
+            var Sessions = await _unitOfWork.SessionRepository.GetAllSessionsWithTrainerAndCategoryAndBookingsAsync(ct: ct);
             if (Sessions is null) return [];
             var MappedSessions = _mapper.Map<IEnumerable<SessionViewModel>>(Sessions);
-            foreach (var session in MappedSessions)
-                session.AvailableSlots = session.Capacity - await _unitOfWork.SessionRepository.GetCountOfBookingsAsync(session.Id);
             return MappedSessions;
         }
 
-        public async Task<SessionViewModel?> GetSessionById(int SessionId)
+        public async Task<SessionViewModel?> GetSessionByIdAsync(int SessionId, CancellationToken ct = default)
         {
-            var Session = await _unitOfWork.SessionRepository.GetSessionWithTrainerAndCategoryAsync(SessionId);
+            var Session = await _unitOfWork.SessionRepository.GetSessionWithTrainerAndCategoryAndBookingsAsync(SessionId, ct);
             if (Session is null) return null;
             var MappedSession = _mapper.Map<SessionViewModel>(Session);
-            MappedSession.AvailableSlots = MappedSession.Capacity - await _unitOfWork.SessionRepository.GetCountOfBookingsAsync(MappedSession.Id);
             return MappedSession;
         }
 
-        public async Task<bool> CreateSession(CreateSessionViewModel createSession)
+        public async Task<bool> CreateSessionAsync(CreateSessionViewModel createSession, CancellationToken ct = default)
         {
             try
             {
-                if (! await IsTrainerExists(createSession.TrainerId)) return false;
+                if (! await IsTrainerExistsAsync(createSession.TrainerId, ct)) return false;
 
-                if (! await IsCategoryExists(createSession.CategoryId)) return false;
+                if (! await IsCategoryExistsAsync(createSession.CategoryId, ct)) return false;
 
                 if (!IsDateTimeValid(createSession.StartDate, createSession.EndDate)) return false;
 
@@ -45,8 +42,8 @@ namespace GymManagementBLL.Services.Classes
 
                 var Session = _mapper.Map<Session>(createSession);
 
-                await _unitOfWork.GetRepository<Session>().AddAsync(Session);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                _unitOfWork.GetRepository<Session>().Add(Session);
+                return await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch(Exception ex)
             {
@@ -55,27 +52,27 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<UpdateSessionViewModel?> GetSessionToUpdate(int SessionId)
+        public async Task<UpdateSessionViewModel?> GetSessionToUpdateAsync(int SessionId, CancellationToken ct = default)
         {
-            var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId);
-            if (! await IsSessionAvailableToUpdate(Session!)) return null!;
+            var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId, ct: ct);
+            if (! await IsSessionAvailableToUpdateAsync(Session!, ct)) return null!;
             return _mapper.Map<UpdateSessionViewModel>(Session);
         }
 
-        public async Task<bool> UpdateSession(int SessionId, UpdateSessionViewModel updateSession)
+        public async Task<bool> UpdateSessionAsync(int SessionId, UpdateSessionViewModel updateSession, CancellationToken ct = default)
         {
             try
             {
-                var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId);
-                if (! await IsSessionAvailableToUpdate(Session!)) return false;
-                if (! await IsTrainerExists(updateSession.TrainerId)) return false;
+                var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId, ct: ct);
+                if (! await IsSessionAvailableToUpdateAsync(Session!, ct)) return false;
+                if (! await IsTrainerExistsAsync(updateSession.TrainerId, ct)) return false;
                 if (!IsDateTimeValid(updateSession.StartDate, updateSession.EndDate)) return false;
 
                 _mapper.Map(updateSession, Session);
                 Session!.UpdatedAt = DateTime.Now;
                 _unitOfWork.SessionRepository.Update(Session);
 
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                return await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch(Exception ex)
             {
@@ -84,17 +81,17 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<bool> RemoveSession(int SessionId)
+        public async Task<bool> RemoveSessionAsync(int SessionId, CancellationToken ct = default)
         {
             try
             {
-                var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId);
+                var Session = await _unitOfWork.SessionRepository.GetByIdAsync(SessionId, ct: ct);
                 if (Session is null) return false;
 
-                if (! await IsSessionAvailableToRemove(Session)) return false;
+                if (! await IsSessionAvailableToRemoveAsync(Session, ct)) return false;
 
                 _unitOfWork.SessionRepository.Delete(Session);
-                return  await _unitOfWork.SaveChangesAsync() > 0;
+                return  await _unitOfWork.SaveChangesAsync(ct) > 0;
             }
             catch(Exception ex)
             {
@@ -103,49 +100,49 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<IEnumerable<TrainerSelectViewModel>> GetTrainerForDropDown()
+        public async Task<IEnumerable<TrainerSelectViewModel>> GetTrainerForDropDownAsync(CancellationToken ct = default)
         {
-            var Trainers = await _unitOfWork.GetRepository<Trainer>().GetAllAsync();
+            var Trainers = await _unitOfWork.GetRepository<Trainer>().GetAllAsync(ct : ct);
             return _mapper.Map<IEnumerable<TrainerSelectViewModel>>(Trainers);
         }
 
-        public async Task<IEnumerable<CategorySelectViewModel>> GetCategoryForDropDown()
+        public async Task<IEnumerable<CategorySelectViewModel>> GetCategoryForDropDownAsync(CancellationToken ct = default)
         {
-            var Categories = await _unitOfWork.GetRepository<Category>().GetAllAsync();
+            var Categories = await _unitOfWork.GetRepository<Category>().GetAllAsync(ct: ct);
             return _mapper.Map<IEnumerable<CategorySelectViewModel>>(Categories);
         }
 
         #region Helper Methods
-        private async Task<bool> IsTrainerExists(int TrainerId)
+        private async Task<bool> IsTrainerExistsAsync(int TrainerId, CancellationToken ct = default)
         {
-            return await _unitOfWork.GetRepository<Trainer>().GetByIdAsync(TrainerId) is not null;
+            return await _unitOfWork.GetRepository<Trainer>().GetByIdAsync(TrainerId, ct: ct) is not null;
         }
-        private async Task<bool> IsCategoryExists(int CategoryId)
+        private async Task<bool> IsCategoryExistsAsync(int CategoryId, CancellationToken ct = default)
         {
-            return await _unitOfWork.GetRepository<Category>().GetByIdAsync(CategoryId) is not null;
+            return await _unitOfWork.GetRepository<Category>().GetByIdAsync(CategoryId, ct: ct) is not null;
         }
         private bool IsDateTimeValid(DateTime StartDate, DateTime EndDate)
         {
             return StartDate < EndDate && DateTime.Now < StartDate;
         }
-        private async Task<bool> IsSessionAvailableToUpdate(Session session)
+        private async Task<bool> IsSessionAvailableToUpdateAsync(Session session, CancellationToken ct = default)
         {
             if (session is null) return false;
             if(session.EndDate < DateTime.Now) return false;
             if(session.StartDate <= DateTime.Now && session.EndDate > DateTime.Now) return false;
 
-            var HasActiveBookings = await _unitOfWork.SessionRepository.GetCountOfBookingsAsync(session.Id) > 0;
+            var HasActiveBookings = await _unitOfWork.SessionRepository.GetCountOfBookingsAsync(session.Id, ct) > 0;
             if (HasActiveBookings) return false;
 
             return true;
         }
-        private async Task<bool> IsSessionAvailableToRemove(Session session)
+        private async Task<bool> IsSessionAvailableToRemoveAsync(Session session, CancellationToken ct = default)
         {
             if (session is null) return false;
             if (session.StartDate > DateTime.Now) return false;
             if(session.StartDate <= DateTime.Now && session.EndDate > DateTime.Now) return false;
 
-            var HasActiveBookings = await _unitOfWork.SessionRepository.GetCountOfBookingsAsync(session.Id) > 0;
+            var HasActiveBookings = await _unitOfWork.SessionRepository.GetCountOfBookingsAsync(session.Id, ct) > 0;
             if (HasActiveBookings) return false;
             return true;
         }

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace GymManagementDAL.Data.Configurations
 {
-    public class SessionConfiguration : IEntityTypeConfiguration<Session>
+    internal class SessionConfiguration : IEntityTypeConfiguration<Session>
     {
         public void Configure(EntityTypeBuilder<Session> builder)
         {

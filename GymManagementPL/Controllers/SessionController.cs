@@ -10,13 +10,13 @@ namespace GymManagementPL.Controllers
     [Authorize(Roles = "SuperAdmin,Admin")]
     public class SessionController(ISessionService _sessionService) : Controller
     {
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var Sessions = await _sessionService.GetAllSessions();
+            var Sessions = await _sessionService.GetAllSessionsAsync(ct);
             return View(Sessions);
         }
 
-        public async Task<IActionResult> SessionDetails(int Id)
+        public async Task<IActionResult> SessionDetails(int Id, CancellationToken ct)
         {
             if (Id <= 0)
             {
@@ -24,7 +24,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Session = await _sessionService.GetSessionById(Id);
+            var Session = await _sessionService.GetSessionByIdAsync(Id, ct);
 
             if(Session is null)
             {
@@ -34,24 +34,24 @@ namespace GymManagementPL.Controllers
             return View(Session);
         }
 
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken ct)
         {
-            await LoadDropDownForCategories();
-            await LoadDropDownForTrainers();
+            await LoadDropDownForCategoriesAsync(ct);
+            await LoadDropDownForTrainersAsync(ct);
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateSessionViewModel createSession)
+        public async Task<IActionResult> Create(CreateSessionViewModel createSession, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
-                await LoadDropDownForTrainers();
-                await LoadDropDownForCategories();
+                await LoadDropDownForTrainersAsync(ct);
+                await LoadDropDownForCategoriesAsync(ct);
                 return View(createSession);
             }
 
-            var result = await _sessionService.CreateSession(createSession);
+            var result = await _sessionService.CreateSessionAsync(createSession, ct);
 
             if (result)
             {
@@ -61,13 +61,13 @@ namespace GymManagementPL.Controllers
             else
             {
                 TempData["ErrorMessage"] = "Session Failed To Create";
-                await LoadDropDownForCategories();
-                await LoadDropDownForTrainers();
+                await LoadDropDownForCategoriesAsync(ct);
+                await LoadDropDownForTrainersAsync(ct);
                 return View(createSession);
             }
         }
 
-        public async Task<IActionResult> Edit(int Id)
+        public async Task<IActionResult> Edit(int Id, CancellationToken ct)
         {
             if (Id <= 0)
             {
@@ -75,8 +75,8 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Session = await _sessionService.GetSessionToUpdate(Id);
-            await LoadDropDownForTrainers();
+            var Session = await _sessionService.GetSessionToUpdateAsync(Id, ct);
+            await LoadDropDownForTrainersAsync();
 
             if (Session is null)
             {
@@ -88,15 +88,15 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int Id, UpdateSessionViewModel updateSession)
+        public async Task<IActionResult> Edit(int Id, UpdateSessionViewModel updateSession, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
-                await LoadDropDownForTrainers();
+                await LoadDropDownForTrainersAsync(ct);
                 return View(updateSession);
             }
 
-            var result = await _sessionService.UpdateSession(Id, updateSession);
+            var result = await _sessionService.UpdateSessionAsync(Id, updateSession, ct);
 
             if (result)
                 TempData["SuccessMessage"] = "Session Updated Successfully";
@@ -106,9 +106,9 @@ namespace GymManagementPL.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int Id)
+        public async Task<IActionResult> Delete(int Id, CancellationToken ct)
         {
-            var Session = await _sessionService.GetSessionById(Id);
+            var Session = await _sessionService.GetSessionByIdAsync(Id, ct);
             if(Session is null)
             {
                 TempData["ErrorMessage"] = "Session Not Found";
@@ -119,9 +119,9 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteConfirmed(int Id)
+        public async Task<IActionResult> DeleteConfirmed(int Id, CancellationToken ct)
         {
-            var result = await _sessionService.RemoveSession(Id);
+            var result = await _sessionService.RemoveSessionAsync(Id, ct);
             if (result)
                 TempData["SuccessMessage"] = "Session Deleted Successfully";
             else
@@ -131,15 +131,15 @@ namespace GymManagementPL.Controllers
         }
 
         #region Helper Method
-        private async Task LoadDropDownForCategories()
+        private async Task LoadDropDownForCategoriesAsync(CancellationToken ct = default)
         {
-            var Categories = await _sessionService.GetCategoryForDropDown();
+            var Categories = await _sessionService.GetCategoryForDropDownAsync(ct);
             ViewBag.Categories = new SelectList(Categories,"Id","Name");    
         }
 
-        private async Task LoadDropDownForTrainers()
+        private async Task LoadDropDownForTrainersAsync(CancellationToken ct = default)
         {
-            var Trainers = await _sessionService.GetTrainerForDropDown();
+            var Trainers = await _sessionService.GetTrainerForDropDownAsync(ct);
             ViewBag.Trainers = new SelectList(Trainers,"Id","Name");
         }
         #endregion
