@@ -1,5 +1,6 @@
 ﻿using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.UserViewModels;
+using GymManagementDAL.Data.Contexts;
 using GymManagementDAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,26 +10,23 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class UserService(UserManager<AppUser> _userManager, RoleManager<IdentityRole> _roleManager) : IUserService
+    internal class UserService(UserManager<AppUser> _userManager, RoleManager<IdentityRole> _roleManager, GymDbContext _dbContext) : IUserService
     {
-        public async Task<IEnumerable<UserViewModel>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserViewModel>> GetAllUsersAsync(CancellationToken ct = default)
         {
-            var Users = await _userManager.Users.ToListAsync();
-
-            var result = new List<UserViewModel>();
-
-            foreach (var user in Users)
-            {
-                var Roles = await _userManager.GetRolesAsync(user);
-                result.Add(new UserViewModel
-                {
-                    Id = user.Id,
-                    FullName = $"{user.FirstName} {user.LastName}",
-                    Email = user.Email!,
-                    Role = Roles.FirstOrDefault() ?? "No Role"
-                });
-            }
-            return result;
+            var usersWithRoles = await (from user in _userManager.Users.AsNoTracking()
+                                        join userRole in _dbContext.UserRoles on user.Id equals userRole.UserId into ur
+                                        from userRole in ur.DefaultIfEmpty()
+                                        join role in _roleManager.Roles.AsNoTracking() on userRole.RoleId equals role.Id into r
+                                        from role in r.DefaultIfEmpty()
+                                        select new UserViewModel
+                                        {
+                                            Id = user.Id,
+                                            FullName = $"{user.FirstName} {user.LastName}",
+                                            Email = user.Email ?? string.Empty,
+                                            Role = role != null ? role.Name! : "No Role"
+                                        }).ToListAsync(ct);
+            return usersWithRoles;
         }
 
         public async Task<bool> CreateUserAsync(CreateUserViewModel model)
@@ -62,7 +60,7 @@ namespace GymManagementBLL.Services.Classes
             }
         }
 
-        public async Task<bool> DeleteUser(string userId)
+        public async Task<bool> DeleteUserAsync(string userId)
         {
             try
             {

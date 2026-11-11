@@ -10,39 +10,39 @@ namespace GymManagementPL.Controllers
     [Authorize(Roles = "SuperAdmin,Admin")]
     public class BookingController(IBookingService _bookingService) : Controller
     {
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var Sessions = await _bookingService.GetAllSessionsUpcomingAndOngoing();
+            var Sessions = await _bookingService.GetAllSessionsUpcomingAndOngoingAsync(ct);
             return View(Sessions);
         }
 
-        public async Task<IActionResult> GetMembersForUpcomingSessions(int Id)
+        public async Task<IActionResult> GetMembersForUpcomingSessions(int Id, CancellationToken ct)
         {
-            var Members = await _bookingService.GetAllMembersForUpcomingSession(Id);
+            var Members = await _bookingService.GetAllMembersForUpcomingSessionAsync(Id, ct);
             return View(Members);
         }
 
-        public async Task<IActionResult> GetMembersForOngoingSessions(int Id)
+        public async Task<IActionResult> GetMembersForOngoingSessions(int Id, CancellationToken ct)
         {
-            var Members = await _bookingService.GetAllMembersForOngoingSession(Id);
+            var Members = await _bookingService.GetAllMembersForOngoingSessionAsync(Id, ct);
             return View(Members);
         }
 
-        public async Task<IActionResult> Create(int Id)
+        public async Task<IActionResult> Create(int Id, CancellationToken ct)
         {
-            await LoadMemberForDropDown(Id);
+            await LoadMemberForDropDown(Id, ct);
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateBookingViewModel createBooking)
+        public async Task<IActionResult> Create(CreateBookingViewModel createBooking, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Booking Failed To Create";
             }
 
-            var result = await _bookingService.CreateBooking(createBooking);
+            var result = await _bookingService.CreateBookingAsync(createBooking, ct);
 
             if (result)
             {
@@ -56,9 +56,9 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> MarkAsAttended(int SessionId, int MemberId)
+        public async Task<IActionResult> MarkAsAttended(int SessionId, int MemberId, CancellationToken ct)
         {
-            var result = await _bookingService.MarkAttendance(SessionId,MemberId);
+            var result = await _bookingService.MarkAttendanceAsync(SessionId, MemberId, ct);
             if (result)
                 TempData["SuccessMessage"] = "Attendance Marked Successfully";
             else
@@ -67,9 +67,9 @@ namespace GymManagementPL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Cancel(int SessionId, int MemberId)
+        public async Task<IActionResult> Cancel(int SessionId, int MemberId, CancellationToken ct)
         {
-            var result = await _bookingService.CancelBooking(SessionId, MemberId);
+            var result = await _bookingService.CancelBookingAsync(SessionId, MemberId, ct);
             if (result)
                 TempData["SuccessMessage"] = "Booking Cancelled Successfully";
             else
@@ -78,9 +78,9 @@ namespace GymManagementPL.Controllers
         }
 
         #region Helper Mehtods
-        private async Task LoadMemberForDropDown(int Id)
+        private async Task LoadMemberForDropDown(int Id, CancellationToken ct = default)
         {
-            var Members = await _bookingService.GetMembersForDropDown(Id);
+            var Members = await _bookingService.GetMembersForDropDownAsync(Id, ct);
             ViewBag.Members = new SelectList(Members, "Id", "Name");
         }
 

@@ -6,12 +6,12 @@ using System.Text;
 
 namespace GymManagementBLL.Services.AttachmentService
 {
-    public class AttachmentService(IWebHostEnvironment _webHost) : IAttachmentService
+    internal class AttachmentService(IWebHostEnvironment _webHost) : IAttachmentService
     {
         private readonly string[] allowedExtensions = { ".jpg", ".jpeg", ".png" };
         private readonly long maxFileSize = 5 * 1024 * 1024;
 
-        public async Task<string?> Upload(string folderName, IFormFile file)
+        public async Task<string?> Upload(string folderName, IFormFile file, CancellationToken ct = default)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace GymManagementBLL.Services.AttachmentService
                 var filePath = Path.Combine(folderPath, fileName);
 
                 using var fileStream = new FileStream(filePath, FileMode.Create);
-                await file.CopyToAsync(fileStream);
+                await file.CopyToAsync(fileStream, ct);
 
                 return fileName;
             }

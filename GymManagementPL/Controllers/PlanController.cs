@@ -10,7 +10,7 @@ namespace GymManagementPL.Controllers
     {
         public async Task<IActionResult> Index()
         {
-            var Plans = await _planService.GetAllPlans();
+            var Plans = await _planService.GetAllPlansAsync();
             return View(Plans);
         }
 
@@ -22,7 +22,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Plan = await _planService.GetPlanDetails(Id);
+            var Plan = await _planService.GetPlanDetailsAsync(Id);
 
             if(Plan is null)
             {
@@ -40,7 +40,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var Plan = await _planService.GetPlanToUpdate(Id);
+            var Plan = await _planService.GetPlanToUpdateAsync(Id);
 
             if(Plan is null)
             {
@@ -59,7 +59,7 @@ namespace GymManagementPL.Controllers
                 return View(updatePlan);
             }
 
-            var result = await _planService.UpdatePlanDetails(Id, updatePlan);
+            var result = await _planService.UpdatePlanDetailsAsync(Id, updatePlan);
 
             if (result)
                 TempData["SuccessMessage"] = "Plan Updated Successfully";
@@ -72,7 +72,7 @@ namespace GymManagementPL.Controllers
         [HttpPost]
         public async Task<IActionResult> ToggleStatus([FromRoute] int Id)
         {
-            var result = await _planService.ToggleStatus(Id);
+            var result = await _planService.ToggleStatusAsync(Id);
 
             if (result)
                 TempData["SuccessMessage"] = "Plan Status Changed";

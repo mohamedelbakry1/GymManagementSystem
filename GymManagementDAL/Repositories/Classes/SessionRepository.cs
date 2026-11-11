@@ -9,7 +9,7 @@ using System.Text;
 
 namespace GymManagementDAL.Repositories.Classes
 {
-    public class SessionRepository : GenericRepository<Session>, ISessionRepository
+    internal class SessionRepository : GenericRepository<Session>, ISessionRepository
     {
         private readonly GymDbContext _dbContext;
 
@@ -18,27 +18,30 @@ namespace GymManagementDAL.Repositories.Classes
             this._dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategoryAsync(Expression<Func<Session, bool>>? condition = null)
+        public async Task<IEnumerable<Session>> GetAllSessionsWithTrainerAndCategoryAndBookingsAsync(Expression<Func<Session, bool>>? condition = null, CancellationToken ct = default)
         {
             if(condition is not null)
                 return await _dbContext.Sessions.Include(X => X.SessionTrainer)
                    .Include(X => X.SessionCategory)
-                   .Where(condition).ToListAsync();
+                   .Include(X => X.Bookings)
+                   .Where(condition).ToListAsync(ct);
             else
             return await _dbContext.Sessions.Include(X => X.SessionTrainer)
                    .Include(X => X.SessionCategory)
-                   .ToListAsync();
+                   .Include(X => X.Bookings)
+                   .ToListAsync(ct);
         }
-        public async Task<Session?> GetSessionWithTrainerAndCategoryAsync(int SessionId)
+        public async Task<Session?> GetSessionWithTrainerAndCategoryAndBookingsAsync(int SessionId, CancellationToken ct = default)
         {
             return await _dbContext.Sessions.Include(X => X.SessionTrainer)
                                       .Include(X => X.SessionCategory)
-                                      .FirstOrDefaultAsync(X => X.Id == SessionId);
+                                      .Include(X => X.Bookings)
+                                      .FirstOrDefaultAsync(X => X.Id == SessionId, ct);
         }
 
-        public async Task<int> GetCountOfBookingsAsync(int SessionId)
+        public async Task<int> GetCountOfBookingsAsync(int SessionId, CancellationToken ct = default)
         {
-            return await _dbContext.Bookings.CountAsync(X => X.SessionId == SessionId);
+            return await _dbContext.Bookings.CountAsync(X => X.SessionId == SessionId, ct);
         }
     }
 }

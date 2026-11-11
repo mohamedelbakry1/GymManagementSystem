@@ -32,7 +32,7 @@ namespace GymManagementBLL
             CreateMap<Session, SessionViewModel>()
             .ForMember(dest => dest.CategoryName, options => options.MapFrom(src => src.SessionCategory.CategoryName))
             .ForMember(dest => dest.TrainerName, options => options.MapFrom(src => src.SessionTrainer.Name))
-            .ForMember(dest => dest.AvailableSlots, options => options.Ignore());
+            .ForMember(dest => dest.AvailableSlots, options => options.MapFrom(src => src.Capacity - (src.Bookings != null ? src.Bookings.Count() : 0)));
 
             CreateMap<CreateSessionViewModel, Session>();
 

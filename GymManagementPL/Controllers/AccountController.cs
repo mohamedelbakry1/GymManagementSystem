@@ -19,7 +19,7 @@ namespace GymManagementPL.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var User = await _accountService.ValidateUser(model);
+            var User = await _accountService.ValidateUserAsync(model);
             if (User is null)
             {
                 ModelState.AddModelError("InvalidLogin", "Check Email or Password");

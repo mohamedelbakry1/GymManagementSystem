@@ -7,10 +7,10 @@ namespace GymManagementBLL.Services.Interfaces
 {
     public interface IPlanService
     {
-        Task<IEnumerable<PlanViewModel>> GetAllPlans();
-        Task<PlanViewModel?> GetPlanDetails(int PlanId);
-        Task<UpdatePlanViewModel?> GetPlanToUpdate(int PlanId);
-        Task<bool> UpdatePlanDetails(int PlanId, UpdatePlanViewModel updatePlan);
-        Task<bool> ToggleStatus(int PlanId);
+        Task<IEnumerable<PlanViewModel>> GetAllPlansAsync(CancellationToken ct = default);
+        Task<PlanViewModel?> GetPlanDetailsAsync(int PlanId, CancellationToken ct = default);
+        Task<UpdatePlanViewModel?> GetPlanToUpdateAsync(int PlanId, CancellationToken ct = default);
+        Task<bool> UpdatePlanDetailsAsync(int PlanId, UpdatePlanViewModel updatePlan, CancellationToken ct = default);
+        Task<bool> ToggleStatusAsync(int PlanId, CancellationToken ct = default);
     }
 }

@@ -9,9 +9,9 @@ namespace GymManagementPL.Controllers
     [Authorize]
     public class HomeController(IAnalyticsService _analyticsService) : Controller
     {
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var Data = await _analyticsService.GetAnalyticsData();
+            var Data = await _analyticsService.GetAnalyticsDataAsync(ct);
             return View(Data);
         }
     }

@@ -7,7 +7,7 @@ namespace GymManagementBLL.Services.AttachmentService
 {
     public interface IAttachmentService
     {
-        Task<string?> Upload(string folderName, IFormFile file);
+        Task<string?> Upload(string folderName, IFormFile file, CancellationToken ct = default);
         bool Delete(string folderName, string fileName);
     }
 }

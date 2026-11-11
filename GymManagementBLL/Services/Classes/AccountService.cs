@@ -8,9 +8,9 @@ using System.Text;
 
 namespace GymManagementBLL.Services.Classes
 {
-    public class AccountService(UserManager<AppUser> _userManager) : IAccountService
+    internal class AccountService(UserManager<AppUser> _userManager) : IAccountService
     {
-        public async Task<AppUser?> ValidateUser(LoginViewModel login)
+        public async Task<AppUser?> ValidateUserAsync(LoginViewModel login)
         {
             var User = await _userManager.FindByEmailAsync(login.Email);
             if (User is null) return null;

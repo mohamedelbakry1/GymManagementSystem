@@ -79,7 +79,7 @@ namespace GymManagementPL.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var result = await _userService.DeleteUser(Id);
+            var result = await _userService.DeleteUserAsync(Id);
 
             if (result)
                 TempData["SuccessMessage"] = "User Deleted Successfully";
